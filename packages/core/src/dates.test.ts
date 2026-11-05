@@ -5,8 +5,10 @@ import {
   isTradingDay,
   nextTradingDay,
   nyDateOf,
+  nyLocalToUtc,
   nyseHolidays,
   toNyDate,
+  toNyLocal,
   tradingDaysBetween,
   tradingDaysInRange,
   weekday,
@@ -103,5 +105,36 @@ describe('NYSE calendar', () => {
     expect(tradingDaysBetween('2026-03-06', '2026-03-09')).toBe(1); // Fri -> Mon
     expect(tradingDaysBetween('2026-07-02', '2026-07-07')).toBe(2); // skips Jul 3 holiday
     expect(tradingDaysBetween('2026-03-09', '2026-03-06')).toBe(0);
+  });
+});
+
+describe('New York local time <-> UTC', () => {
+  it('converts NY wall-clock time to UTC across DST', () => {
+    expect(nyLocalToUtc('2026-03-02', '10:00')).toBe('2026-03-02T15:00:00.000Z'); // EST
+    expect(nyLocalToUtc('2026-07-01', '09:30')).toBe('2026-07-01T13:30:00.000Z'); // EDT
+    expect(nyLocalToUtc('2026-07-01', '09:30:15')).toBe('2026-07-01T13:30:15.000Z');
+  });
+
+  it('resolves DST edge cases deterministically', () => {
+    // 02:30 does not exist on spring-forward day: shifted forward to 03:30 EDT.
+    expect(nyLocalToUtc('2026-03-08', '02:30')).toBe('2026-03-08T07:30:00.000Z');
+    // 01:30 happens twice on fall-back day: the first (EDT) occurrence wins.
+    expect(nyLocalToUtc('2026-11-01', '01:30')).toBe('2026-11-01T05:30:00.000Z');
+  });
+
+  it('rejects malformed input', () => {
+    expect(() => nyLocalToUtc('2026-02-30', '10:00')).toThrow(RangeError);
+    expect(() => nyLocalToUtc('2026-03-02', '25:00')).toThrow(RangeError);
+    expect(() => nyLocalToUtc('2026-03-02', '9:30')).toThrow(RangeError);
+  });
+
+  it('formats a UTC timestamp as NY date and time', () => {
+    expect(toNyLocal('2026-03-02T15:00:00.000Z')).toEqual({ date: '2026-03-02', time: '10:00' });
+    expect(toNyLocal('2026-07-01T03:05:00Z')).toEqual({ date: '2026-06-30', time: '23:05' });
+  });
+
+  it('round-trips', () => {
+    const { date, time } = toNyLocal('2026-10-14T18:45:00.000Z');
+    expect(nyLocalToUtc(date, time)).toBe('2026-10-14T18:45:00.000Z');
   });
 });

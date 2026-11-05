@@ -157,3 +157,58 @@ export function tradingDaysBetween(from: IsoDate, to: IsoDate): number {
   if (to <= from) return 0;
   return tradingDaysInRange(addDays(from, 1), to).length;
 }
+
+// ---------------------------------------------------------------------------
+// New York wall-clock time <-> UTC (for forms and display)
+
+const nyClock = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/New_York',
+  hourCycle: 'h23',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+});
+
+function nyParts(ms: number): Record<string, string> {
+  return Object.fromEntries(nyClock.formatToParts(new Date(ms)).map((p) => [p.type, p.value]));
+}
+
+/** NY wall-clock reading of an instant, expressed as if it were UTC milliseconds. */
+function nyWallMs(ms: number): number {
+  const p = nyParts(ms);
+  return Date.UTC(
+    Number(p['year']),
+    Number(p['month']) - 1,
+    Number(p['day']),
+    Number(p['hour']),
+    Number(p['minute']),
+    Number(p['second']),
+  );
+}
+
+const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$/;
+
+/**
+ * UTC ISO timestamp of a New York wall-clock time (`HH:MM` or `HH:MM:SS`).
+ * A time skipped by spring-forward is shifted forward an hour; an ambiguous
+ * fall-back time resolves to its first (EDT) occurrence.
+ */
+export function nyLocalToUtc(date: IsoDate, time: string): string {
+  const m = TIME_RE.exec(time);
+  if (!m) throw new RangeError(`Invalid time: "${time}"`);
+  const wall =
+    dateToMs(date) + Number(m[1]) * 3_600_000 + Number(m[2]) * 60_000 + Number(m[3] ?? 0) * 1_000;
+  const edt = wall + 4 * 3_600_000;
+  const est = wall + 5 * 3_600_000;
+  if (nyWallMs(edt) === wall) return new Date(edt).toISOString();
+  return new Date(est).toISOString(); // EST, or the spring-forward gap
+}
+
+/** NY date and `HH:MM` of a UTC timestamp. */
+export function toNyLocal(iso: string): { date: IsoDate; time: string } {
+  const p = nyParts(parseTimestamp(iso));
+  return { date: `${p['year']}-${p['month']}-${p['day']}`, time: `${p['hour']}:${p['minute']}` };
+}

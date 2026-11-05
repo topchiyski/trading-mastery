@@ -16,3 +16,8 @@ export function dbPath(): string {
   const p = process.env['DB_PATH'] ?? 'data/journal.db';
   return isAbsolute(p) ? p : resolve(REPO_ROOT, p);
 }
+
+export function uploadsDir(): string {
+  const p = process.env['UPLOADS_DIR'] ?? 'data/uploads';
+  return isAbsolute(p) ? p : resolve(REPO_ROOT, p);
+}

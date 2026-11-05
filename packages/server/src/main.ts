@@ -1,11 +1,11 @@
 import { buildApp } from './app';
-import { dbPath, loadEnv } from './config';
+import { dbPath, loadEnv, uploadsDir } from './config';
 import { openDatabase } from './db/client';
 
 loadEnv();
 const port = Number(process.env['PORT'] ?? 3001);
 const database = openDatabase(dbPath());
-const app = buildApp({ db: database.db, logger: true });
+const app = buildApp({ db: database.db, uploadsDir: uploadsDir(), logger: true });
 
 const shutdown = () => {
   void app.close().finally(() => {

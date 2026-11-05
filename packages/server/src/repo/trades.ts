@@ -12,7 +12,6 @@ import { and, asc, eq, inArray, isNull } from 'drizzle-orm';
 import type { Db, DbOrTx } from '../db/client';
 import {
   executions,
-  screenshots,
   tags,
   tradeExecutions,
   trades,
@@ -22,6 +21,7 @@ import {
 } from '../db/schema';
 import { conflict, invalid, notFound } from '../errors';
 import { insertExecutionTx, toExecutionDto } from './executions';
+import { listScreenshots } from './screenshots';
 import { toCoreExecution } from './regroup';
 import { getSettings } from './settings';
 import { listStops } from './stops';
@@ -171,7 +171,7 @@ export function getTradeDetail(db: DbOrTx, id: number) {
     stops,
     /** Latest trailing stop, else the initial stop. */
     currentStop: stops.at(-1)?.stopPrice ?? row.initialStop,
-    screenshots: db.select().from(screenshots).where(eq(screenshots.tradeId, id)).all(),
+    screenshots: listScreenshots(db, id),
   };
 }
 export type TradeDetail = ReturnType<typeof getTradeDetail>;

@@ -1,16 +1,22 @@
 import { healthStatus } from '@tj/core';
+import multipart from '@fastify/multipart';
 import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
 import { ZodError } from 'zod';
 import type { Db } from './db/client';
 import { DomainError, isUniqueViolation } from './errors';
 import { cashFlowRoutes } from './routes/cash-flows';
 import { executionRoutes } from './routes/executions';
+import { screenshotRoutes } from './routes/screenshots';
 import { settingsRoutes } from './routes/settings';
 import { tagRoutes } from './routes/tags';
 import { tradeRoutes } from './routes/trades';
 
 export interface AppOptions {
   db: Db;
+  /** Where screenshots are stored. */
+  uploadsDir: string;
+  /** Max upload size in bytes (default 10 MB). */
+  maxUploadBytes?: number;
   logger?: boolean;
 }
 
@@ -49,10 +55,15 @@ export function buildApp(opts: AppOptions): FastifyInstance {
       );
   });
 
+  void app.register(multipart, {
+    limits: { fileSize: opts.maxUploadBytes ?? 10 * 1024 * 1024, files: 1, fields: 5 },
+  });
+
   app.get('/api/health', async () => healthStatus());
 
   executionRoutes(app, opts.db);
-  tradeRoutes(app, opts.db);
+  tradeRoutes(app, opts.db, opts.uploadsDir);
+  screenshotRoutes(app, opts.db, opts.uploadsDir);
   tagRoutes(app, opts.db);
   cashFlowRoutes(app, opts.db);
   settingsRoutes(app, opts.db);

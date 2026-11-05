@@ -9,7 +9,8 @@ Work phase by phase and stop after each phase for go-ahead.
 - `packages/core` — pure TS domain logic (grouping, P&L, R, metrics, curves). No I/O. TDD.
 - `packages/server` — Fastify API + Drizzle/SQLite (`better-sqlite3`). Binds to 127.0.0.1:3001.
 - `packages/web` — Vite + React UI on localhost:5173, proxies `/api` to the server.
-- `e2e/` — Playwright tests (start the dev servers automatically).
+- `e2e/` — Playwright tests. They start their own servers on ports 3101/5174 with a throwaway DB in
+  `data/e2e/` (wiped each run), so they never touch the real journal or a running dev session.
 
 ## Commands
 
@@ -28,7 +29,10 @@ Work phase by phase and stop after each phase for go-ahead.
 - Any write that touches executions must go through `repo/executions` (or `repo/trades`) so the
   symbol is regrouped in the same transaction (`regroupSymbol`). Never write `trades` status/keys directly.
 - API errors are `{ error: { code, message, details? } }`; throw `DomainError` (see `src/errors.ts`).
-- Server tests use `createTestApp()` (in-memory DB, `src/__fixtures__/test-app.ts`).
+- Server tests use `createTestApp()` (in-memory DB + temp uploads dir, `src/__fixtures__/test-app.ts`).
+- Web: TanStack Query hooks in `src/api/hooks.ts`; form parsing/validation as pure functions in
+  `src/lib/validate.ts` (unit-tested). Forms take New York local time; never use the browser time zone.
+- E2E selectors use roles and labels (`getByRole`, `getByLabel`); keep labels unique within a form/region.
 - Timestamps are stored as UTC ISO-8601 TEXT; trading-day logic uses America/New_York dates.
 - v1 is long-only, but keep `direction` columns and don't hard-code assumptions that block shorts.
 - Never silently clip a sell that exceeds the position; surface it as a validation error.

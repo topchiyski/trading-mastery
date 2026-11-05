@@ -1,22 +1,36 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const WEB_URL = 'http://localhost:5173';
+// E2E runs on its own ports and its own database so it can never touch the real journal
+// or attach to a dev server that is already running.
+const API_PORT = 3101;
+const WEB_PORT = 5174;
+const WEB_URL = `http://localhost:${WEB_PORT}`;
 
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: false,
+  workers: 1,
   forbidOnly: !!process.env['CI'],
   retries: process.env['CI'] ? 2 : 0,
   reporter: 'list',
   use: {
     baseURL: WEB_URL,
     trace: 'on-first-retry',
+    timezoneId: 'America/New_York',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: 'npm run dev',
+    // Wipe the E2E database first, then start both servers.
+    command: 'node e2e/reset-data.mjs && npm run dev',
     url: WEB_URL,
-    reuseExistingServer: !process.env['CI'],
-    timeout: 60_000,
+    reuseExistingServer: false,
+    timeout: 90_000,
+    env: {
+      PORT: String(API_PORT),
+      API_PORT: String(API_PORT),
+      WEB_PORT: String(WEB_PORT),
+      DB_PATH: 'data/e2e/journal.db',
+      UPLOADS_DIR: 'data/e2e/uploads',
+    },
   },
 });

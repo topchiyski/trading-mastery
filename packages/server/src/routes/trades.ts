@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { Db } from '../db/client';
+import { listScreenshots, removeFiles } from '../repo/screenshots';
 import { addStop, deleteStop, listStops } from '../repo/stops';
 import {
   addFill,
@@ -75,7 +76,7 @@ const stopSchema = z
   .strict();
 const tagsSchema = z.object({ tagIds: z.array(z.number().int().positive()).max(100) }).strict();
 
-export function tradeRoutes(app: FastifyInstance, db: Db): void {
+export function tradeRoutes(app: FastifyInstance, db: Db, uploadsDir: string): void {
   app.get('/api/trades', async (req) => listTrades(db, listQuery.parse(req.query)));
 
   app.post('/api/trades', async (req, reply) =>
@@ -89,7 +90,10 @@ export function tradeRoutes(app: FastifyInstance, db: Db): void {
   );
 
   app.delete('/api/trades/:id', async (req, reply) => {
-    deleteOrphanedTrade(db, idParam.parse(req.params).id);
+    const { id } = idParam.parse(req.params);
+    const files = listScreenshots(db, id);
+    deleteOrphanedTrade(db, id);
+    removeFiles(uploadsDir, files);
     return reply.code(204).send();
   });
 

@@ -39,3 +39,15 @@ Interpretations made where `SPEC.md` leaves room. Code lives in `packages/core`;
 | Cash-flow signs     | Deposits > 0, withdrawals < 0, other types any non-zero amount.                                                                                                                                                                                                                                   |
 | Tags                | Names are unique across kinds. The setup is `trades.setup_tag_id` (SETUP tags only); `trade_tags` holds MISTAKE/CUSTOM tags. Delete-with-reassign and merge require the same kind.                                                                                                                |
 | Seed                | Deterministic (seeded PRNG). Refuses a non-empty DB; `--force` wipes every table first.                                                                                                                                                                                                           |
+
+## UI (Phase 3)
+
+| Topic          | Decision                                                                                                                                                                                                       |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Times in forms | Entered and displayed as New York wall-clock time; converted with `nyLocalToUtc` / `toNyLocal`. A time skipped by spring-forward shifts forward; an ambiguous fall-back time takes the first (EDT) occurrence. |
+| Prices         | Fill prices show 2 decimals, or 4 when sub-cent. Averages (entry, exit, cost) are shown to the cent.                                                                                                           |
+| Open trades    | The list's P&L column shows realised net so far (tooltip says so); return % and R stay empty until closed.                                                                                                     |
+| Add fill       | Open trades show the form (default Sell). Closed trades hide it behind "Add a missed fill…" (default Buy). Sells larger than the open position are blocked inline.                                             |
+| Forms          | Inputs clear on submit and are restored if the save fails, so fast entry can't race the response. Deletes use a two-click confirm button, never a browser dialog.                                              |
+| Screenshots    | PNG/JPEG/WebP/GIF only, detected from the file's bytes; 10 MB limit; stored as `data/uploads/<tradeId>/<uuid>.<ext>`; files are removed with the screenshot or the orphaned entry.                             |
+| Filters        | Trade-list filters and sort live in the URL query string so other pages can deep-link.                                                                                                                         |

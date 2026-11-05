@@ -13,6 +13,7 @@
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
+    "@fastify/multipart": "^10.1.7",
     "@tj/core": "*",
     "better-sqlite3": "^13.0.3",
     "drizzle-orm": "^0.45.4",
