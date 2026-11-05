@@ -1,9 +1,47 @@
+# Dependencies
 node_modules/
+
+# Build output and caches
 dist/
+build/
+*.tsbuildinfo
+.vite/
+.eslintcache
+.cache/
+
+# Test output
 coverage/
 test-results/
 playwright-report/
+blob-report/
+playwright/.cache/
+
+# App data: local DB, uploads, backups (personal trading data — never commit)
 data/*
 !data/.gitkeep
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+
+# Secrets: keep only the template
 .env
+.env.*
+!.env.example
+
+# Logs
 *.log
+npm-debug.log*
+
+# Claude Code: per-user settings stay local; shared settings.json and hooks are committed
+.claude/settings.local.json
+
+# Editors and OS
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
