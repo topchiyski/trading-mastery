@@ -41,8 +41,12 @@ export default tseslint.config(
   {
     // With noUncheckedIndexedAccess, `rows[0]!` is the idiomatic way to index in tests;
     // a wrong index still fails the test.
-    files: ['**/*.test.{ts,tsx}', 'e2e/**/*.ts'],
-    rules: { '@typescript-eslint/no-non-null-assertion': 'off' },
+    // Test fixtures may also use `any` for untyped JSON response bodies.
+    files: ['**/*.test.{ts,tsx}', '**/__fixtures__/**/*.ts', 'e2e/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
   },
   prettier,
 );

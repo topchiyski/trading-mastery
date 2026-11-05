@@ -1,2 +1,9 @@
-// Placeholder until Phase 2 adds the Drizzle schema and migrations.
-console.log('db:migrate — no schema yet (added in Phase 2). Nothing to do.');
+// Apply pending migrations to the configured database (DB_PATH, default data/journal.db).
+import { dbPath, loadEnv } from '../src/config';
+import { openDatabase } from '../src/db/client';
+
+loadEnv();
+const file = dbPath();
+const database = openDatabase(file); // openDatabase migrates on open
+database.close();
+console.log(`db:migrate — ${file} is up to date.`);

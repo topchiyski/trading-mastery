@@ -19,7 +19,7 @@
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
     "db:migrate": "npm run db:migrate -w @tj/server",
-    "db:seed": "npm run db:seed -w @tj/server"
+    "db:seed": "npm run db:seed -w @tj/server --"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -38,6 +38,9 @@
     "vitest": "^5.1.0"
   },
   "allowScripts": {
-    "esbuild@0.28.2": true
+    "esbuild@0.28.2": true,
+    "esbuild@0.18.20": true,
+    "esbuild@0.25.12": true,
+    "better-sqlite3": false
   }
 }

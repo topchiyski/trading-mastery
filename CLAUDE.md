@@ -18,11 +18,17 @@ Work phase by phase and stop after each phase for go-ahead.
 - `npm run lint` — ESLint + Prettier check
 - `npm test` — all Vitest projects; single file: `npx vitest run <path>`
 - `npm run test:e2e` — Playwright
-- `npm run db:migrate` / `npm run db:seed` — apply migrations / load demo data
+- `npm run db:migrate` / `npm run db:seed` — apply migrations / load demo data (`-- --force` wipes first)
+- `npm run db:generate -w @tj/server -- --name <name>` — new migration after editing `src/db/schema.ts`
 
 ## Rules
 
 - Money and prices are INTEGER micros (1 USD = 1_000_000); never floats in storage or core math.
+  The REST API also speaks micros; the web app converts with `toMicros` / `formatUsd` from `@tj/core`.
+- Any write that touches executions must go through `repo/executions` (or `repo/trades`) so the
+  symbol is regrouped in the same transaction (`regroupSymbol`). Never write `trades` status/keys directly.
+- API errors are `{ error: { code, message, details? } }`; throw `DomainError` (see `src/errors.ts`).
+- Server tests use `createTestApp()` (in-memory DB, `src/__fixtures__/test-app.ts`).
 - Timestamps are stored as UTC ISO-8601 TEXT; trading-day logic uses America/New_York dates.
 - v1 is long-only, but keep `direction` columns and don't hard-code assumptions that block shorts.
 - Never silently clip a sell that exceeds the position; surface it as a validation error.
