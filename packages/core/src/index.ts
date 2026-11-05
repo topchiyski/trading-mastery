@@ -1,7 +1,20 @@
 /**
  * @tj/core — pure domain logic (grouping, P&L, R, metrics, equity curves).
- * No I/O, no framework dependencies. Filled in during Phase 1.
+ * No I/O, no framework dependencies.
  */
+
+export * from './breakdown';
+export * from './dates';
+export * from './drawdown';
+export * from './equity';
+export * from './grouping';
+export * from './metrics';
+export * from './money';
+export * from './outcome';
+export * from './risk';
+export * from './summary';
+export * from './trade-stats';
+export * from './types';
 
 export const APP_NAME = 'Swing Trade Journal';
 

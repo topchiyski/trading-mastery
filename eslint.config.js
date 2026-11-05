@@ -38,5 +38,11 @@ export default tseslint.config(
     plugins: { 'react-hooks': reactHooks },
     rules: reactHooks.configs.recommended.rules,
   },
+  {
+    // With noUncheckedIndexedAccess, `rows[0]!` is the idiomatic way to index in tests;
+    // a wrong index still fails the test.
+    files: ['**/*.test.{ts,tsx}', 'e2e/**/*.ts'],
+    rules: { '@typescript-eslint/no-non-null-assertion': 'off' },
+  },
   prettier,
 );

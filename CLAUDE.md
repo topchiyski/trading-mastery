@@ -1,7 +1,8 @@
 # Swing Trade Journal
 
 Local, single-user journal for long-only US-equity swing trades. The full spec and build plan
-live in `docs/SPEC.md`. Work phase by phase and stop after each phase for go-ahead.
+live in `docs/SPEC.md`; calculation choices the spec leaves open are in `docs/DECISIONS.md`.
+Work phase by phase and stop after each phase for go-ahead.
 
 ## Layout
 

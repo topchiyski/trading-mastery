@@ -6,7 +6,16 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['packages/*/src/**/*.{ts,tsx}'],
-      exclude: ['**/*.test.{ts,tsx}', '**/main.ts', '**/main.tsx'],
+      exclude: [
+        '**/*.test.{ts,tsx}',
+        '**/__fixtures__/**',
+        '**/main.ts',
+        '**/main.tsx',
+        '**/types.ts',
+      ],
+      thresholds: {
+        'packages/core/src/**': { lines: 95 },
+      },
     },
   },
 });
