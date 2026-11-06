@@ -42,6 +42,7 @@ npm-debug.log*
 
 # Claude Code: per-user settings stay local; shared settings.json and hooks are committed
 .claude/settings.local.json
+.claude/*.local.md
 
 # Editors and OS
 .vscode/*

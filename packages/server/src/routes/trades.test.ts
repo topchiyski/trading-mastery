@@ -328,3 +328,41 @@ describe('DELETE /api/trades/:id', () => {
     expect((await t.del('/api/trades/999')).status).toBe(404);
   });
 });
+
+describe('GET /api/trades?missingStop=true', () => {
+  it('lists only trades without an initial stop, open and closed, and not orphans', async () => {
+    const t = createTestApp();
+    const withStop = (await t.post('/api/trades', newTrade({ symbol: 'AAPL' }))).body.id;
+    const noStopOpen = (
+      await t.post('/api/trades', newTrade({ symbol: 'MSFT', initialStop: null }))
+    ).body.id;
+    const noStopClosed = (
+      await t.post('/api/trades', newTrade({ symbol: 'NVDA', initialStop: null }))
+    ).body.id;
+    await t.post(`/api/trades/${noStopClosed}/fills`, {
+      side: 'SELL',
+      quantity: sh(100),
+      price: $('51'),
+      executedAt: at(4),
+    });
+    const ids = (await t.get('/api/trades?missingStop=true')).body.trades.map(
+      (x: { id: number }) => x.id,
+    );
+    expect(ids.sort()).toEqual([noStopOpen, noStopClosed].sort());
+    expect(ids).not.toContain(withStop);
+
+    // Setting a stop removes the trade from the list.
+    await t.patch(`/api/trades/${noStopOpen}`, { initialStop: $('45') });
+    expect(
+      (await t.get('/api/trades?missingStop=true')).body.trades.map((x: { id: number }) => x.id),
+    ).toEqual([noStopClosed]);
+    expect((await t.get('/api/trades?missingStop=maybe')).status).toBe(400);
+  });
+
+  it('includes each trade first entry price so a stop can be checked before saving', async () => {
+    const t = createTestApp();
+    await t.post('/api/trades', newTrade({ symbol: 'MSFT', initialStop: null }));
+    const [row] = (await t.get('/api/trades?missingStop=true')).body.trades;
+    expect(row.firstEntryPrice).toBe($('50'));
+  });
+});

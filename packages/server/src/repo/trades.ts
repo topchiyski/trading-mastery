@@ -119,6 +119,8 @@ function toListItem(ctx: TradeContext, summary: TradeSummary | null, breakEvenTh
     openQty: s?.openQty ?? null,
     avgEntry: s?.avgEntry ?? null,
     avgExit: s?.avgExit ?? null,
+    /** Price of the first buy: an initial stop must be below it. */
+    firstEntryPrice: s?.firstEntry.price ?? null,
     netPnl,
     realisedNet: s?.realisedNet ?? null,
     fees: s?.fees ?? null,
@@ -189,6 +191,8 @@ export interface TradeFilter {
   from?: string | undefined;
   to?: string | undefined;
   orphaned?: 'exclude' | 'include' | 'only' | undefined;
+  /** Only trades without an initial stop. */
+  missingStop?: boolean | undefined;
 }
 
 export function listTrades(db: DbOrTx, filter: TradeFilter = {}) {
@@ -203,7 +207,8 @@ export function listTrades(db: DbOrTx, filter: TradeFilter = {}) {
         (orphaned === 'include' || (orphaned === 'only') === (r.orphanedAt !== null)) &&
         (!filter.status || r.status === filter.status) &&
         (!filter.symbol || r.symbol === filter.symbol) &&
-        (filter.setupTagId === undefined || r.setupTagId === filter.setupTagId),
+        (filter.setupTagId === undefined || r.setupTagId === filter.setupTagId) &&
+        (!filter.missingStop || r.initialStop === null),
     );
 
   const items = loadContexts(db, rows)

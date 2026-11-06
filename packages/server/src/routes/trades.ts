@@ -69,6 +69,10 @@ export const tradeListQuery = z.object({
   from: plainDate.optional(),
   to: plainDate.optional(),
   orphaned: z.enum(['exclude', 'include', 'only']).optional(),
+  missingStop: z
+    .enum(['true', 'false'])
+    .transform((v) => v === 'true')
+    .optional(),
 });
 
 const stopSchema = z

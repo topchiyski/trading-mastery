@@ -420,7 +420,7 @@ export function DashboardPage() {
           {d.metrics.rExcludedCount > 0 && (
             <p className="muted" style={{ margin: 0 }}>
               {d.metrics.rExcludedCount} of {d.metrics.count} trades have no initial stop and are
-              left out of every R statistic.
+              left out of every R statistic. <Link to="/missing-stops">Add their stops</Link>.
             </p>
           )}
 

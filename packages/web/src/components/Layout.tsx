@@ -78,6 +78,7 @@ export function Layout() {
           Trades
         </NavLink>
         <NavLink to="/positions">Positions</NavLink>
+        <NavLink to="/missing-stops">Missing stops</NavLink>
         <NavLink to="/cash-flows">Cash flows</NavLink>
         <NavLink to="/imports">Import</NavLink>
         <NavLink to="/settings">Settings</NavLink>

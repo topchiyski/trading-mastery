@@ -41,6 +41,8 @@ export interface TradeListItem {
   openQty: number | null;
   avgEntry: number | null;
   avgExit: number | null;
+  /** Price of the first buy (an initial stop must be below it). */
+  firstEntryPrice: number | null;
   netPnl: number | null;
   realisedNet: number | null;
   fees: number | null;
@@ -146,6 +148,8 @@ export interface TradeFilters {
   from?: string;
   to?: string;
   orphaned?: 'exclude' | 'include' | 'only';
+  /** Only trades without an initial stop. */
+  missingStop?: boolean;
 }
 
 export type ImportSource = 'IBKR_ACTIVITY' | 'CSV';

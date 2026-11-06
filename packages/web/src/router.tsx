@@ -10,6 +10,7 @@ import { Layout } from './components/Layout';
 import { CashFlowsPage } from './pages/CashFlowsPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ImportPage } from './pages/ImportPage';
+import { MissingStopsPage } from './pages/MissingStopsPage';
 import { NewTradePage } from './pages/NewTradePage';
 import { PositionsPage } from './pages/PositionsPage';
 import { SettingsPage } from './pages/SettingsPage';
@@ -57,6 +58,7 @@ export const routes: RouteObject[] = [
           { path: 'trades/new', element: <NewTradePage /> },
           { path: 'trades/:id', element: <TradeDetailPage /> },
           { path: 'positions', element: <PositionsPage /> },
+          { path: 'missing-stops', element: <MissingStopsPage /> },
           { path: 'cash-flows', element: <CashFlowsPage /> },
           { path: 'imports', element: <ImportPage /> },
           { path: 'settings', element: <SettingsPage /> },
