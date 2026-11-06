@@ -44,3 +44,31 @@ describe('RateLimiter', () => {
     expect(rl.usage()).toEqual([{ label: 'hour', used: 1, max: 50 }]);
   });
 });
+
+describe('RateLimiter boundaries', () => {
+  it.each([
+    [999, false], // 1 ms before the window ends: still blocked
+    [1000, true], // exactly when the oldest request leaves the window
+  ])('after %i ms a full window allows a request: %s', (ms, allowed) => {
+    const c = clock();
+    const rl = new RateLimiter([{ max: 1, windowMs: 1000 }], c.now);
+    rl.tryAcquire();
+    c.advance(ms);
+    expect(rl.tryAcquire()).toBe(allowed);
+  });
+
+  it.each([
+    [2, true],
+    [3, false],
+  ])('with max 3, request number %i+1 in one window is allowed: %s', (used, allowed) => {
+    const rl = new RateLimiter([{ max: 3, windowMs: 1000 }], () => 0);
+    for (let i = 0; i < used; i++) rl.tryAcquire();
+    expect(rl.tryAcquire()).toBe(allowed);
+  });
+
+  it('labels a window without a label by its length, and uses the real clock by default', () => {
+    expect(new RateLimiter([{ max: 1, windowMs: 500 }]).usage()).toEqual([
+      { label: '500ms', used: 0, max: 1 },
+    ]);
+  });
+});

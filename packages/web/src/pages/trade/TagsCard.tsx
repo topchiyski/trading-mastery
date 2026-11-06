@@ -18,10 +18,14 @@ export function TagsCard({ trade }: { trade: TradeDetail }) {
     const trimmed = name.trim();
     if (!trimmed) return;
     const existing = tags.data?.find((t) => t.name.toLowerCase() === trimmed.toLowerCase());
-    const tag = existing ?? (await createTag.mutateAsync({ name: trimmed, kind }));
-    if (tag.kind === 'SETUP') await setSetup.mutateAsync({ setupTagId: tag.id });
-    else if (!current.includes(tag.id)) await setTags.mutateAsync([...current, tag.id]);
-    setName('');
+    try {
+      const tag = existing ?? (await createTag.mutateAsync({ name: trimmed, kind }));
+      if (tag.kind === 'SETUP') await setSetup.mutateAsync({ setupTagId: tag.id });
+      else if (!current.includes(tag.id)) await setTags.mutateAsync([...current, tag.id]);
+      setName('');
+    } catch {
+      // Shown from the mutation errors below; keep the name so the user can fix it.
+    }
   }
 
   const error = setTags.error ?? createTag.error ?? setSetup.error;

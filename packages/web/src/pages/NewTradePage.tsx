@@ -68,15 +68,19 @@ export function NewTradePage() {
     setSubmitted(true);
     if (!payload || setupMissing) return;
     let setupTagId: number | null = setup && setup !== NEW_SETUP ? Number(setup) : null;
-    if (setup === NEW_SETUP) {
-      setupTagId = (await createTag.mutateAsync({ name: newSetup.trim(), kind: 'SETUP' })).id;
+    try {
+      if (setup === NEW_SETUP) {
+        setupTagId = (await createTag.mutateAsync({ name: newSetup.trim(), kind: 'SETUP' })).id;
+      }
+      const trade = await createTrade.mutateAsync({
+        ...payload,
+        setupTagId,
+        thesis: thesis.trim() || null,
+      });
+      void navigate(`/trades/${trade.id}`);
+    } catch {
+      // The error is shown from the mutation state (createTrade.error / createTag.error).
     }
-    const trade = await createTrade.mutateAsync({
-      ...payload,
-      setupTagId,
-      thesis: thesis.trim() || null,
-    });
-    navigate(`/trades/${trade.id}`);
   }
 
   const apiError = createTrade.error ?? createTag.error;

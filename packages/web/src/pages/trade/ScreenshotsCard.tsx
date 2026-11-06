@@ -124,11 +124,15 @@ export function ScreenshotsCard({ trade }: { trade: TradeDetail }) {
   const fileRef = useRef<HTMLInputElement>(null);
 
   async function uploadFiles(files: FileList | File[]) {
-    for (const file of Array.from(files)) {
-      if (!file.type.startsWith('image/')) continue;
-      await upload.mutateAsync({ file, caption: caption.trim() });
+    try {
+      for (const file of Array.from(files)) {
+        if (!file.type.startsWith('image/')) continue;
+        await upload.mutateAsync({ file, caption: caption.trim() });
+      }
+      setCaption('');
+    } catch {
+      // Shown from upload.error; keep the caption so the user can retry.
     }
-    setCaption('');
     if (fileRef.current) fileRef.current.value = '';
   }
 

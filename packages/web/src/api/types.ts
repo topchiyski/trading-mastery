@@ -20,7 +20,7 @@ export interface Execution {
   commission: number;
   otherFees: number;
   executedAt: string;
-  source: 'MANUAL' | 'IBKR_FLEX' | 'CSV';
+  source: 'MANUAL' | 'IBKR_ACTIVITY' | 'IBKR_FLEX' | 'CSV';
   externalId: string | null;
   importBatchId: number | null;
 }
