@@ -9,6 +9,9 @@ import type {
   ImportPreset,
   ImportPreview,
   ImportSource,
+  MarketStatus,
+  Positions,
+  TradeChart,
   Screenshot,
   Settings,
   StopChange,
@@ -224,5 +227,38 @@ export function useDashboard(filters: DashboardFilters) {
     queryKey: ['trades', 'dashboard', filters],
     queryFn: () => api.get<Dashboard>(`/api/dashboard${query(filters)}`),
     placeholderData: (prev) => prev,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Market data
+
+export function useTradeChart(tradeId: number) {
+  return useQuery({
+    queryKey: ['trades', 'chart', tradeId],
+    queryFn: () => api.get<TradeChart>(`/api/trades/${tradeId}/chart`),
+  });
+}
+
+export function usePositions() {
+  return useQuery({
+    queryKey: ['trades', 'positions'],
+    queryFn: () => api.get<Positions>('/api/positions'),
+  });
+}
+
+export function useMarketStatus(poll: boolean) {
+  return useQuery({
+    queryKey: ['market-status'],
+    queryFn: () => api.get<MarketStatus>('/api/market-data/status'),
+    refetchInterval: poll ? 3_000 : 60_000,
+  });
+}
+
+export function useSyncMarket() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.post<MarketStatus>('/api/market-data/sync', { wait: true }),
+    onSuccess: () => qc.invalidateQueries(),
   });
 }

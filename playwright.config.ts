@@ -22,7 +22,8 @@ export default defineConfig({
   webServer: {
     // Wipe the E2E database first, then start both servers.
     command: 'node e2e/reset-data.mjs && npm run dev',
-    url: WEB_URL,
+    // Wait for the API through the web proxy: both servers are up when this answers.
+    url: `${WEB_URL}/api/health`,
     reuseExistingServer: false,
     timeout: 90_000,
     env: {
@@ -31,6 +32,8 @@ export default defineConfig({
       WEB_PORT: String(WEB_PORT),
       DB_PATH: 'data/e2e/journal.db',
       UPLOADS_DIR: 'data/e2e/uploads',
+      // Offline, deterministic prices: E2E never calls the real provider (env beats .env).
+      MARKET_DATA_PROVIDER: 'synthetic',
     },
   },
 });

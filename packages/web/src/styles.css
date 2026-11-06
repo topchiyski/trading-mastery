@@ -449,6 +449,7 @@ button:disabled {
 :root {
   --chart-surface: #fcfcfb;
   --chart-series: #2a78d6;
+  --chart-cat-2: #eb6834;
   --chart-neg: #e34948;
   --chart-pos-deep: #1c5cab;
   --chart-neg-deep: #b0302f;

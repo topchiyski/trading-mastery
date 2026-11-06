@@ -1,11 +1,20 @@
 import { buildApp } from './app';
 import { dbPath, loadEnv, uploadsDir } from './config';
 import { openDatabase } from './db/client';
+import { marketDataFromEnv } from './market/from-env';
 
 loadEnv();
 const port = Number(process.env['PORT'] ?? 3001);
 const database = openDatabase(dbPath());
-const app = buildApp({ db: database.db, uploadsDir: uploadsDir(), logger: true });
+const market = marketDataFromEnv(database.db);
+const app = buildApp({
+  db: database.db,
+  uploadsDir: uploadsDir(),
+  market,
+  backgroundSyncMs: 15 * 60_000,
+  logger: true,
+});
+app.log.info(`market data: ${market.provider?.name ?? 'not configured'}`);
 
 const shutdown = () => {
   void app.close().finally(() => {

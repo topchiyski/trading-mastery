@@ -4,6 +4,9 @@ import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
 import { ZodError } from 'zod';
 import type { Db } from './db/client';
 import { DomainError, isUniqueViolation } from './errors';
+import { MarketData } from './market/market-data';
+import { MarketSync } from './market/sync';
+import { marketRoutes } from './routes/market';
 import { cashFlowRoutes } from './routes/cash-flows';
 import { dashboardRoutes } from './routes/dashboard';
 import { executionRoutes } from './routes/executions';
@@ -19,6 +22,10 @@ export interface AppOptions {
   uploadsDir: string;
   /** Max upload size in bytes (default 10 MB). */
   maxUploadBytes?: number;
+  /** Candle cache + provider (default: none configured, cached data only). */
+  market?: MarketData;
+  /** Run the market-data backfill every N ms (off when unset, e.g. in tests). */
+  backgroundSyncMs?: number;
   logger?: boolean;
 }
 
@@ -70,7 +77,21 @@ export function buildApp(opts: AppOptions): FastifyInstance {
   cashFlowRoutes(app, opts.db);
   settingsRoutes(app, opts.db);
   importRoutes(app, opts.db);
-  dashboardRoutes(app, opts.db);
+  const market = opts.market ?? new MarketData({ db: opts.db, provider: null });
+  const sync = new MarketSync(opts.db, market);
+  dashboardRoutes(app, opts.db, market);
+  marketRoutes(app, opts.db, market, sync);
+
+  // Background backfill: soon after start, then periodically (only when a provider is set).
+  if (opts.backgroundSyncMs && market.configured) {
+    const run = () => void sync.runOnce().catch((err: unknown) => app.log.error(err));
+    const first = setTimeout(run, 5_000);
+    const every = setInterval(run, opts.backgroundSyncMs);
+    app.addHook('onClose', async () => {
+      clearTimeout(first);
+      clearInterval(every);
+    });
+  }
 
   return app;
 }

@@ -9,6 +9,7 @@
  */
 import {
   WEEKDAY_ORDER,
+  benchmarkIndex,
   breakdownBy,
   buildEquitySeries,
   computePortfolioMetrics,
@@ -20,6 +21,9 @@ import {
   type CashFlow,
 } from '@tj/core';
 import type { DbOrTx } from '../db/client';
+import { tradeExcursions } from '../market/excursions';
+import type { MarketData } from '../market/market-data';
+import { BENCHMARK } from '../market/sync';
 import { listCashFlows } from './cash-flows';
 import { getSettings } from './settings';
 import { listTrades, type TradeFilter, type TradeListItem } from './trades';
@@ -34,7 +38,7 @@ export interface DashboardFilter {
 
 type ClosedTrade = TradeListItem & { netPnl: number; closedAt: string };
 
-export function getDashboard(db: DbOrTx, filter: DashboardFilter) {
+export function getDashboard(db: DbOrTx, filter: DashboardFilter, md?: MarketData) {
   const settings = getSettings(db);
   const subset: TradeFilter = {
     status: 'CLOSED',
@@ -117,6 +121,32 @@ export function getDashboard(db: DbOrTx, filter: DashboardFilter) {
     ),
   };
 
+  // --- market data (cached candles only; the dashboard never fetches)
+  let benchmark: {
+    symbol: string;
+    points: { date: string; spy: number | null; portfolio: number }[];
+  } | null = null;
+  const first = equity[0];
+  const lastPoint = equity.at(-1);
+  if (md && first && lastPoint) {
+    const spy = md.candles(BENCHMARK, first.date, lastPoint.date);
+    if (spy.length > 0) {
+      const prices = new Map(spy.map((b) => [b.date, b.adjClose ?? b.close]));
+      const idx = benchmarkIndex(
+        prices,
+        equity.map((p) => p.date),
+      );
+      benchmark = {
+        symbol: BENCHMARK,
+        points: equity.map((p, i) => ({
+          date: p.date,
+          spy: idx[i]?.value ?? null,
+          portfolio: p.twrIndex * 100,
+        })),
+      };
+    }
+  }
+
   return {
     range: { from: equity[0]?.date ?? null, to: equity.at(-1)?.date ?? null },
     includesCashFlows: !isSubset,
@@ -125,16 +155,24 @@ export function getDashboard(db: DbOrTx, filter: DashboardFilter) {
     equity,
     rCurve,
     monthly,
-    trades: trades.map((t) => ({
-      id: t.id,
-      symbol: t.symbol,
-      openedAt: t.openedAt,
-      closedAt: t.closedAt,
-      netPnl: t.netPnl,
-      rMultiple: t.rMultiple,
-      tradingDays: t.holding?.tradingDays ?? 0,
-      calendarDays: t.holding?.calendarDays ?? 0,
-    })),
+    benchmark,
+    trades: trades.map((t) => {
+      const x = md
+        ? tradeExcursions(md.candles(t.symbol, nyDateOf(t.openedAt), nyDateOf(t.closedAt)), t)
+        : null;
+      return {
+        id: t.id,
+        symbol: t.symbol,
+        openedAt: t.openedAt,
+        closedAt: t.closedAt,
+        netPnl: t.netPnl,
+        rMultiple: t.rMultiple,
+        tradingDays: t.holding?.tradingDays ?? 0,
+        calendarDays: t.holding?.calendarDays ?? 0,
+        mae: x?.mae ?? null,
+        mfe: x?.mfe ?? null,
+      };
+    }),
     breakdowns,
   };
 }

@@ -4,6 +4,7 @@ import { CashFlowsPage } from './pages/CashFlowsPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ImportPage } from './pages/ImportPage';
 import { NewTradePage } from './pages/NewTradePage';
+import { PositionsPage } from './pages/PositionsPage';
 import { TradeDetailPage } from './pages/trade/TradeDetailPage';
 import { TradesPage } from './pages/TradesPage';
 
@@ -24,6 +25,7 @@ export const routes: RouteObject[] = [
       { path: 'trades', element: <TradesPage /> },
       { path: 'trades/new', element: <NewTradePage /> },
       { path: 'trades/:id', element: <TradeDetailPage /> },
+      { path: 'positions', element: <PositionsPage /> },
       { path: 'cash-flows', element: <CashFlowsPage /> },
       { path: 'imports', element: <ImportPage /> },
       { path: '*', element: <NotFound /> },

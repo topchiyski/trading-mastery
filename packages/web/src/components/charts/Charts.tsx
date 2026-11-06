@@ -8,9 +8,9 @@ import type { Bin } from '@tj/core';
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { divergingFill, linearScale, niceTicks } from './scale';
 
-const M = { top: 10, right: 12, bottom: 26, left: 64 };
+export const M = { top: 10, right: 12, bottom: 26, left: 64 };
 
-function useWidth<T extends HTMLElement>() {
+export function useWidth<T extends HTMLElement>() {
   const ref = useRef<T>(null);
   const [width, setWidth] = useState(0);
   useLayoutEffect(() => {
@@ -23,7 +23,7 @@ function useWidth<T extends HTMLElement>() {
   return [ref, width] as const;
 }
 
-function Tooltip({ x, y, children }: { x: number; y: number; children: ReactNode }) {
+export function Tooltip({ x, y, children }: { x: number; y: number; children: ReactNode }) {
   return (
     <div className="chart-tooltip" style={{ left: x, top: y }} role="presentation">
       {children}
@@ -31,7 +31,7 @@ function Tooltip({ x, y, children }: { x: number; y: number; children: ReactNode
   );
 }
 
-function YAxis({
+export function YAxis({
   ticks,
   y,
   width,

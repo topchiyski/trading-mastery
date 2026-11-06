@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { afterEach } from 'vitest';
 import { buildApp } from '../app';
 import { openDatabase, type OpenDatabase } from '../db/client';
+import { MarketData } from '../market/market-data';
 
 export interface TestApp {
   app: FastifyInstance;
@@ -28,10 +29,22 @@ afterEach(async () => {
   }
 });
 
-export function createTestApp(opts: { maxUploadBytes?: number } = {}): TestApp {
+export function createTestApp(
+  opts: {
+    maxUploadBytes?: number;
+    /** Market data (default: no provider configured, cached data only). */
+    market?: (db: OpenDatabase['db']) => MarketData;
+  } = {},
+): TestApp {
   const database = openDatabase(':memory:');
   const uploadsDir = mkdtempSync(join(tmpdir(), 'tj-uploads-'));
-  const app = buildApp({ db: database.db, uploadsDir, ...opts });
+  const { market, ...rest } = opts;
+  const app = buildApp({
+    db: database.db,
+    uploadsDir,
+    market: market ? market(database.db) : new MarketData({ db: database.db, provider: null }),
+    ...rest,
+  });
   const call =
     (method: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE') =>
     async (url: string, payload?: unknown) => {

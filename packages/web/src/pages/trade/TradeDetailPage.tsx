@@ -14,6 +14,7 @@ import {
   tone,
 } from '../../lib/format';
 import { FillsCard } from './FillsCard';
+import { PriceChartCard } from './PriceChartCard';
 import { JournalCard } from './JournalCard';
 import { ScreenshotsCard } from './ScreenshotsCard';
 import { StopsCard } from './StopsCard';
@@ -190,6 +191,7 @@ export function TradeDetailPage() {
       )}
 
       {!t.orphaned && <Stats t={t} />}
+      {!t.orphaned && <PriceChartCard trade={t} />}
       {!t.orphaned && <FillsCard trade={t} />}
       <div className="grid-2">
         <JournalCard key={t.id} trade={t} />

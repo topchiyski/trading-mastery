@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useDashboard, useTags } from '../api/hooks';
 import type { BreakdownRow, DashboardFilters } from '../api/types';
 import { Histogram, LineChart, MonthHeatmap, Scatter } from '../components/charts/Charts';
+import { MultiLineChart } from '../components/charts/MarketCharts';
 import { ErrorBox, Field, Loading } from '../components/ui';
 import { fmtCompactMoney, fmtMoney, fmtPct, fmtR, tone } from '../lib/format';
 
@@ -347,6 +348,19 @@ export function DashboardPage() {
           y: t.rMultiple ?? 0,
           label: `${t.symbol}, closed ${t.closedAt.slice(0, 10)}, ${t.tradingDays} trading days`,
         })),
+      excursion: d.trades.flatMap((t) =>
+        t.mae?.r != null && t.mfe?.r != null
+          ? [
+              {
+                id: t.id,
+                x: t.mae.r,
+                y: t.mfe.r,
+                r: t.rMultiple,
+                label: `${t.symbol}, closed ${t.closedAt.slice(0, 10)}, MFE`,
+              },
+            ]
+          : [],
+      ),
     };
   }, [d]);
 
@@ -555,6 +569,78 @@ export function DashboardPage() {
                 onOpen={(id) => void navigate(`/trades/${id}`)}
                 label="Holding period versus R-multiple"
               />
+            </ChartCard>
+            <ChartCard
+              title="Portfolio vs SPY"
+              sub="Time-weighted return vs SPY buy-and-hold (adjusted close), both indexed to 100"
+              data={
+                d.benchmark && (
+                  <DataTable
+                    head={['Date', 'Portfolio', 'SPY']}
+                    rows={d.benchmark.points.map((p) => [
+                      p.date,
+                      p.portfolio.toFixed(2),
+                      p.spy === null ? '—' : p.spy.toFixed(2),
+                    ])}
+                  />
+                )
+              }
+            >
+              {d.benchmark ? (
+                <MultiLineChart
+                  dates={d.benchmark.points.map((p) => p.date)}
+                  series={[
+                    {
+                      name: 'Portfolio',
+                      color: 'var(--chart-series)',
+                      values: d.benchmark.points.map((p) => p.portfolio),
+                    },
+                    {
+                      name: 'SPY',
+                      color: 'var(--chart-cat-2)',
+                      values: d.benchmark.points.map((p) => p.spy),
+                    },
+                  ]}
+                  format={(v) => v.toFixed(0)}
+                  label="Portfolio time-weighted return versus SPY, indexed to 100"
+                />
+              ) : (
+                <div className="empty">
+                  No SPY prices yet. Fetch market data on the Positions page.
+                </div>
+              )}
+            </ChartCard>
+            <ChartCard
+              title="MAE vs MFE"
+              sub="Worst and best excursion of each trade in R (daily bars approximate the entry and exit days); click a dot to open the trade"
+              data={
+                <DataTable
+                  head={['Trade', 'MAE (R)', 'MFE (R)', 'Result (R)']}
+                  rows={series.excursion.map((p) => [
+                    p.label.split(',')[0] ?? '',
+                    fmtR(p.x),
+                    fmtR(p.y),
+                    fmtR(p.r),
+                  ])}
+                />
+              }
+            >
+              {series.excursion.length > 0 ? (
+                <Scatter
+                  points={series.excursion}
+                  xFormat={(v) => `${v.toFixed(1)}R`}
+                  yFormat={(v) => `${v.toFixed(1)}R`}
+                  xTitle="MAE (R) — how far it went against you"
+                  onOpen={(id) => void navigate(`/trades/${id}`)}
+                  label="Maximum adverse versus maximum favourable excursion, in R"
+                />
+              ) : (
+                <div className="empty">
+                  No data: needs cached prices and trades with an initial stop.
+                  {d.trades.some((t) => t.mae === null) &&
+                    ' Fetch market data on the Positions page.'}
+                </div>
+              )}
             </ChartCard>
           </div>
 

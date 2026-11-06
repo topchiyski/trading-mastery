@@ -284,7 +284,13 @@ export interface Dashboard {
     rMultiple: number | null;
     tradingDays: number;
     calendarDays: number;
+    mae: Excursion | null;
+    mfe: Excursion | null;
   }[];
+  benchmark: {
+    symbol: string;
+    points: { date: string; spy: number | null; portfolio: number }[];
+  } | null;
   breakdowns: Record<'setup' | 'symbol' | 'weekday' | 'month' | 'mistake', BreakdownRow[]>;
 }
 
@@ -294,4 +300,99 @@ export interface DashboardFilters {
   setupTagId?: number;
   tagId?: number;
   symbol?: string;
+}
+
+export interface Excursion {
+  perShare: number;
+  dollars: number;
+  pct: number;
+  r: number | null;
+}
+
+export interface SplitEvent {
+  date: string;
+  ratio: number;
+  source: 'provider' | 'price-jump';
+}
+
+export interface Candle {
+  date: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+export interface TradeChart {
+  symbol: string;
+  status: 'OPEN' | 'CLOSED';
+  from: string;
+  to: string;
+  complete: boolean;
+  note: string | null;
+  candles: Candle[];
+  markers: { date: string; side: 'BUY' | 'SELL'; price: number; quantity: number }[];
+  levels: {
+    initialStop: number | null;
+    currentStop: number | null;
+    target: number | null;
+    avgEntry: number | null;
+  };
+  excursions: {
+    mae: Excursion;
+    mfe: Excursion;
+    lowestLow: number;
+    highestHigh: number;
+    bars: number;
+  } | null;
+  splits: SplitEvent[];
+}
+
+export interface Position {
+  tradeId: number;
+  symbol: string;
+  openedAt: string;
+  shares: number;
+  avgCost: number | null;
+  lastClose: number | null;
+  lastCloseDate: string | null;
+  marketValue: number | null;
+  unrealised: number | null;
+  unrealisedPct: number | null;
+  unrealisedR: number | null;
+  initialRisk: number | null;
+  currentStop: number | null;
+  stopDistancePct: number | null;
+  stopDistanceR: number | null;
+  openRisk: number | null;
+  realisedNet: number | null;
+  splits: SplitEvent[];
+}
+
+export interface Positions {
+  asOf: string;
+  note: string | null;
+  positions: Position[];
+  totals: {
+    marketValue: number;
+    unrealised: number;
+    openRisk: number;
+    equity: number;
+    openRiskPctOfEquity: number | null;
+    unpriced: number;
+  };
+}
+
+export interface MarketStatus {
+  configured: boolean;
+  provider: string | null;
+  running: boolean;
+  pendingSymbols: number;
+  unknownSymbols: string[];
+  lastRunAt: string | null;
+  lastError: { kind: string; message: string } | null;
+  usage: { label: string; used: number; max: number }[];
+  nextSlotInMs: number;
+  lastCompleteDay: string;
 }

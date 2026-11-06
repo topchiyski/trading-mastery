@@ -7,6 +7,7 @@ import {
   index,
   integer,
   primaryKey,
+  real,
   sqliteTable,
   text,
   uniqueIndex,
@@ -181,10 +182,27 @@ export const candles = sqliteTable(
     high: integer('high').notNull(),
     low: integer('low').notNull(),
     close: integer('close').notNull(),
+    /** Split- and dividend-adjusted close (micros), when the provider has it. */
+    adjClose: integer('adj_close'),
     volume: integer('volume').notNull(),
+    /** Provider split factor on this date (1 = none). */
+    splitFactor: real('split_factor'),
     provider: text('provider').notNull(),
   },
   (t) => [primaryKey({ columns: [t.symbol, t.date] })],
+);
+
+/** Date ranges already fetched from the provider (so empty days aren't re-requested). */
+export const candleCoverage = sqliteTable(
+  'candle_coverage',
+  {
+    symbol: text('symbol').notNull(),
+    fromDate: text('from_date').notNull(),
+    toDate: text('to_date').notNull(),
+    provider: text('provider').notNull(),
+    fetchedAt: text('fetched_at').notNull().default(now),
+  },
+  (t) => [primaryKey({ columns: [t.symbol, t.fromDate, t.toDate] })],
 );
 
 export const settings = sqliteTable('settings', {
@@ -199,3 +217,4 @@ export type CashFlowRow = typeof cashFlows.$inferSelect;
 export type StopChangeRow = typeof stopChanges.$inferSelect;
 export type ImportBatchRow = typeof importBatches.$inferSelect;
 export type ImportPresetRow = typeof importPresets.$inferSelect;
+export type CandleRow = typeof candles.$inferSelect;
