@@ -1,4 +1,5 @@
-import { mulDiv, type Micros } from './money';
+import type { Micros } from './money';
+import { notional } from './quantity';
 
 export interface RiskPlan {
   initialStop?: Micros | null;
@@ -8,7 +9,7 @@ export interface RiskPlan {
 }
 
 /**
- * Initial risk in micros = (first entry price − initial stop) × first entry quantity,
+ * Initial risk in micros = (first entry price − initial stop) × first entry quantity (micro-shares),
  * or the planned-risk override when set. Null when no valid risk can be derived
  * (no stop, or stop not below entry); such trades are excluded from R statistics.
  */
@@ -22,7 +23,7 @@ export function initialRisk(
   if (stop === null) return null;
   const perShare = firstEntry.price - stop;
   if (perShare <= 0) return null;
-  return mulDiv(perShare, firstEntry.quantity, 1);
+  return notional(firstEntry.quantity, perShare);
 }
 
 /** R-multiple = net P&L ÷ initial risk. */

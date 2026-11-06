@@ -4,7 +4,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router';
 import { useTags, useTrades } from '../api/hooks';
 import type { TradeFilters, TradeListItem } from '../api/types';
 import { ErrorBox, Field, Loading } from '../components/ui';
-import { fmtDays, fmtMoney, fmtNyDate, fmtPct, fmtR, tone } from '../lib/format';
+import { fmtDays, fmtMoney, fmtNyDate, fmtPct, fmtQty, fmtR, tone } from '../lib/format';
 
 type SortKey =
   | 'symbol'
@@ -289,7 +289,7 @@ export function TradesPage() {
                     <td className="num">{fmtDays(t.holding)}</td>
                     <td className="num">{fmtMoney(t.avgEntry)}</td>
                     <td className="num">{fmtMoney(t.avgExit)}</td>
-                    <td className="num">{t.quantity ?? '—'}</td>
+                    <td className="num">{fmtQty(t.quantity)}</td>
                     <td
                       className={`num ${tone(pnl)}`}
                       title={

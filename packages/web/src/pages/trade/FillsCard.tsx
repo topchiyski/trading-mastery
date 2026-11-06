@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router';
 import { useAddFill, useDeleteExecution, useSettings } from '../../api/hooks';
 import type { TradeDetail } from '../../api/types';
 import { ConfirmButton, ErrorBox, Field } from '../../components/ui';
-import { fmtMoney, fmtNyDateTime, fmtPrice, tone } from '../../lib/format';
+import { fmtMoney, fmtNyDateTime, fmtPrice, fmtQty, tone } from '../../lib/format';
 import { validateFill, type FillValues } from '../../lib/validate';
 
 function AddFillForm({ trade }: { trade: TradeDetail }) {
@@ -65,7 +65,7 @@ function AddFillForm({ trade }: { trade: TradeDetail }) {
       <Field
         label="Shares"
         error={show('shares')}
-        hint={v.side === 'SELL' ? `${openQty} open` : undefined}
+        hint={v.side === 'SELL' ? `${fmtQty(openQty)} open` : undefined}
       >
         {(p) => <input {...p} inputMode="numeric" {...bind('shares')} />}
       </Field>
@@ -126,7 +126,7 @@ export function FillsCard({ trade }: { trade: TradeDetail }) {
                 <tr key={e.id}>
                   <td>{fmtNyDateTime(e.executedAt)}</td>
                   <td>{e.side === 'BUY' ? 'Buy' : 'Sell'}</td>
-                  <td className="num">{e.quantity}</td>
+                  <td className="num">{fmtQty(e.quantity)}</td>
                   <td className="num">{fmtPrice(e.price)}</td>
                   <td className="num">{fmtMoney(e.commission)}</td>
                   <td className="num">{fmtMoney(e.otherFees)}</td>

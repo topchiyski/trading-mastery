@@ -1,3 +1,4 @@
+import type { CsvMapping } from '../lib/mapping';
 // Response shapes of the REST API (money in micros, timestamps UTC ISO).
 // Mirrors packages/server; kept separate so the web build never pulls in server code.
 import type { HoldingPeriod, Outcome } from '@tj/core';
@@ -145,4 +146,86 @@ export interface TradeFilters {
   from?: string;
   to?: string;
   orphaned?: 'exclude' | 'include' | 'only';
+}
+
+export type ImportSource = 'IBKR_ACTIVITY' | 'CSV';
+export type ImportStatus = 'PREVIEW' | 'COMMITTED' | 'UNDONE';
+
+export interface ImportBatch {
+  id: number;
+  source: ImportSource | 'IBKR_FLEX';
+  filename: string;
+  fileHash: string;
+  importedAt: string;
+  committedAt: string | null;
+  undoneAt: string | null;
+  rowsTotal: number;
+  rowsInserted: number;
+  rowsSkippedDuplicate: number;
+  rowsError: number;
+  status: ImportStatus;
+}
+
+export interface ImportIssue {
+  line: number;
+  severity: 'skipped' | 'error' | 'warning';
+  reason: string;
+  detail?: string;
+}
+
+export interface ImportExecutionRow {
+  line: number;
+  symbol: string;
+  side: 'BUY' | 'SELL';
+  quantity: number;
+  price: number;
+  commission: number;
+  otherFees: number;
+  executedAt: string;
+  externalId: string;
+  status: 'new' | 'duplicate' | 'error';
+  error?: string;
+}
+
+export interface ImportCashFlowRow {
+  line: number;
+  type: CashFlowType;
+  amount: number;
+  occurredAt: string;
+  note: string | null;
+  status: 'new' | 'duplicate';
+}
+
+export interface ImportTradeChange {
+  id: number;
+  symbol: string;
+  status: 'OPEN' | 'CLOSED';
+  openedAt: string;
+  closedAt: string | null;
+  fills: number;
+  netPnl: number | null;
+}
+
+export interface ImportPreview {
+  batch: ImportBatch;
+  duplicateOf: { id: number; filename: string; importedAt: string } | null;
+  summary: {
+    executions: { new: number; duplicate: number; error: number };
+    cashFlows: { new: number; duplicate: number };
+    skipped: number;
+    errors: number;
+    warnings: number;
+  };
+  canCommit: boolean;
+  executions: ImportExecutionRow[];
+  cashFlows: ImportCashFlowRow[];
+  issues: ImportIssue[];
+  trades: { created: ImportTradeChange[]; changed: ImportTradeChange[] };
+}
+
+export interface ImportPreset {
+  id: number;
+  name: string;
+  mapping: CsvMapping | null;
+  createdAt: string;
 }

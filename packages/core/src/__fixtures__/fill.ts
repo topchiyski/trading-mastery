@@ -1,5 +1,6 @@
 // Test-only helpers for building executions with readable dollar amounts.
 import { toMicros } from '../money';
+import { toQuantity } from '../quantity';
 import type { Execution, Side } from '../types';
 
 let autoId = 1000;
@@ -14,6 +15,7 @@ export interface FillOptions {
 
 export function fill(
   side: Side,
+  /** Shares (may be fractional); stored as micro-shares. */
   quantity: number,
   price: string,
   executedAt: string,
@@ -23,7 +25,7 @@ export function fill(
     id: opts.id ?? autoId++,
     symbol: opts.symbol ?? 'AAPL',
     side,
-    quantity,
+    quantity: toQuantity(quantity),
     price: toMicros(price),
     commission: toMicros(opts.commission ?? '0'),
     otherFees: toMicros(opts.otherFees ?? '0'),

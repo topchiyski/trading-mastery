@@ -3,7 +3,7 @@
  * tags, stops, journal text, cash flows and settings. Goes through the repository
  * layer so it obeys the same validation and regrouping rules as the API.
  */
-import { toMicros, tradingDaysInRange } from '@tj/core';
+import { toMicros, toQuantity as sh, tradingDaysInRange } from '@tj/core';
 import { count } from 'drizzle-orm';
 import type { Db } from '../db/client';
 import { executions } from '../db/schema';
@@ -125,7 +125,7 @@ export function seedDemo(db: Db): { trades: number } {
     const trade = createTrade(db, {
       symbol,
       fill: {
-        quantity: qty,
+        quantity: sh(qty),
         price: cents(entryCents),
         commission: $('1'),
         otherFees: 0,
@@ -144,7 +144,7 @@ export function seedDemo(db: Db): { trades: number } {
       const firstCents = Math.max(1, Math.round(entryCents + r * 0.6 * riskCents));
       addFill(db, trade.id, {
         side: 'SELL',
-        quantity: half,
+        quantity: sh(half),
         price: cents(firstCents),
         commission: $('1'),
         otherFees: $('0.02'),
@@ -152,7 +152,7 @@ export function seedDemo(db: Db): { trades: number } {
       });
       addFill(db, trade.id, {
         side: 'SELL',
-        quantity: qty - half,
+        quantity: sh(qty - half),
         price: cents(exitCents),
         commission: $('1'),
         otherFees: $('0.02'),
@@ -161,7 +161,7 @@ export function seedDemo(db: Db): { trades: number } {
     } else {
       addFill(db, trade.id, {
         side: 'SELL',
-        quantity: qty,
+        quantity: sh(qty),
         price: cents(exitCents),
         commission: $('1'),
         otherFees: $('0.03'),
@@ -204,7 +204,7 @@ export function seedDemo(db: Db): { trades: number } {
     const trade = createTrade(db, {
       symbol,
       fill: {
-        quantity: first.qty,
+        quantity: sh(first.qty),
         price: $(first.price),
         commission: $(first.commission ?? '1'),
         otherFees: $(first.otherFees ?? '0'),
@@ -219,7 +219,7 @@ export function seedDemo(db: Db): { trades: number } {
     for (const f of more) {
       addFill(db, trade.id, {
         side: f.side,
-        quantity: f.qty,
+        quantity: sh(f.qty),
         price: $(f.price),
         commission: $(f.commission ?? '1'),
         otherFees: $(f.otherFees ?? '0'),
@@ -362,7 +362,7 @@ export function seedDemo(db: Db): { trades: number } {
   const crmBuy = createExecution(db, {
     symbol: 'CRM',
     side: 'BUY',
-    quantity: 50,
+    quantity: sh(50),
     price: $('270.12'),
     commission: $('0.5'),
     otherFees: 0,
@@ -372,7 +372,7 @@ export function seedDemo(db: Db): { trades: number } {
   createExecution(db, {
     symbol: 'CRM',
     side: 'BUY',
-    quantity: 50,
+    quantity: sh(50),
     price: $('270.10'),
     commission: $('0.5'),
     otherFees: 0,
@@ -382,7 +382,7 @@ export function seedDemo(db: Db): { trades: number } {
   createExecution(db, {
     symbol: 'CRM',
     side: 'SELL',
-    quantity: 100,
+    quantity: sh(100),
     price: $('281'),
     commission: $('1'),
     otherFees: $('0.03'),
@@ -451,6 +451,23 @@ export function seedDemo(db: Db): { trades: number } {
     },
   );
   addStop(db, smci, { stopPrice: $('41'), changedAt: ts('2026-05-06', '15:30') });
+
+  // Fractional shares: 0.5 + 0.25 in, 0.75 out.
+  edge(
+    'COIN',
+    { qty: 0.5, price: '284.10', at: ts('2026-05-18'), commission: '0.35' },
+    [
+      { side: 'BUY', qty: 0.25, price: '280', at: ts('2026-05-19'), commission: '0.35' },
+      { side: 'SELL', qty: 0.75, price: '291', at: ts('2026-05-26', '19:30'), commission: '0.35' },
+    ],
+    {
+      setup: 'Pullback',
+      initialStop: $('270'),
+      review: 'Small fractional position while testing the setup.',
+      executionRating: 3,
+      followedPlan: true,
+    },
+  );
 
   // Same-day trade (0 days held).
   edge(

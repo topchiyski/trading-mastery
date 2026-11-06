@@ -77,8 +77,8 @@ describe('groupExecutions', () => {
       expect.objectContaining({
         code: 'SELL_EXCEEDS_POSITION',
         executionId: 2,
-        positionBefore: 100,
-        sellQuantity: 150,
+        positionBefore: 100_000_000,
+        sellQuantity: 150_000_000,
       }),
     ]);
     expect(trades).toHaveLength(1);
@@ -154,7 +154,7 @@ describe('validateExecution', () => {
 
   it('flags every invalid field', () => {
     const bad = {
-      ...fill('BUY', 1.5, '0', 'yesterday', { symbol: 'aapl' }),
+      ...fill('BUY', 0, '0', 'yesterday', { symbol: 'aapl' }),
       commission: -1,
       otherFees: -1,
       side: 'SHORT' as 'BUY',
@@ -170,5 +170,28 @@ describe('isValidTicker', () => {
   });
   it.each(['aapl', '', '1ABC', 'TOOLONGX', 'BRK..B', 'A B'])('rejects %s', (t) => {
     expect(isValidTicker(t)).toBe(false);
+  });
+});
+
+describe('groupExecutions — fractional shares', () => {
+  it('closes a trade when fractional sells bring the position exactly to zero', () => {
+    const { trades, errors } = groupExecutions([
+      fill('BUY', 0.5, '284.1', at(2), { id: 1 }),
+      fill('SELL', 0.2, '290', at(3), { id: 2 }),
+      fill('SELL', 0.3, '291', at(4), { id: 3 }),
+    ]);
+    expect(errors).toEqual([]);
+    expect(trades[0]!.status).toBe('CLOSED');
+  });
+
+  it('reports the oversized sell in readable shares', () => {
+    const { errors } = groupExecutions([
+      fill('BUY', 0.5, '284.1', at(2), { id: 1 }),
+      fill('SELL', 0.6, '290', at(3), { id: 2 }),
+    ]);
+    expect(errors[0]).toMatchObject({ positionBefore: 500_000, sellQuantity: 600_000 });
+    expect(errors[0]!.message).toBe(
+      'Sell of 0.6 AAPL exceeds the open position of 0.5 (long-only).',
+    );
   });
 });

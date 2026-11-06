@@ -6,6 +6,7 @@ import type { Db } from './db/client';
 import { DomainError, isUniqueViolation } from './errors';
 import { cashFlowRoutes } from './routes/cash-flows';
 import { executionRoutes } from './routes/executions';
+import { importRoutes } from './routes/imports';
 import { screenshotRoutes } from './routes/screenshots';
 import { settingsRoutes } from './routes/settings';
 import { tagRoutes } from './routes/tags';
@@ -67,6 +68,7 @@ export function buildApp(opts: AppOptions): FastifyInstance {
   tagRoutes(app, opts.db);
   cashFlowRoutes(app, opts.db);
   settingsRoutes(app, opts.db);
+  importRoutes(app, opts.db);
 
   return app;
 }

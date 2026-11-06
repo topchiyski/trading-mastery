@@ -1,4 +1,5 @@
 import { parseTimestamp } from './dates';
+import { formatQuantity } from './quantity';
 import type { Execution, GroupedTrade, GroupingError, GroupingResult } from './types';
 
 /** Uppercase US ticker: 1–6 chars, optional share-class suffix like BRK.B or BF-B. */
@@ -14,7 +15,7 @@ export function validateExecution(e: Execution): string[] {
   if (!isValidTicker(e.symbol)) problems.push(`invalid ticker "${e.symbol}"`);
   if (e.side !== 'BUY' && e.side !== 'SELL') problems.push(`invalid side "${String(e.side)}"`);
   if (!Number.isSafeInteger(e.quantity) || e.quantity <= 0) {
-    problems.push(`quantity must be a positive whole number, got ${e.quantity}`);
+    problems.push(`quantity must be positive, got ${e.quantity}`);
   }
   if (!Number.isSafeInteger(e.price) || e.price <= 0) problems.push('price must be positive');
   if (!Number.isSafeInteger(e.commission) || e.commission < 0) {
@@ -82,7 +83,7 @@ function groupSymbol(
         executedAt: e.executedAt,
         positionBefore: position,
         sellQuantity: e.quantity,
-        message: `Sell of ${e.quantity} ${symbol} exceeds the open position of ${position} (long-only).`,
+        message: `Sell of ${formatQuantity(e.quantity)} ${symbol} exceeds the open position of ${formatQuantity(position)} (long-only).`,
       });
       continue;
     }

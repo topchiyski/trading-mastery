@@ -1,4 +1,4 @@
-import { toMicros as $ } from '@tj/core';
+import { toMicros as $, toQuantity as sh } from '@tj/core';
 import { describe, expect, it } from 'vitest';
 import { parseMoneyInput, parseSharesInput, validateFill, validateNewTrade } from './validate';
 
@@ -12,11 +12,18 @@ describe('parseMoneyInput', () => {
 });
 
 describe('parseSharesInput', () => {
-  it('requires a positive whole number', () => {
-    expect(parseSharesInput('100')).toEqual({ value: 100 });
+  it('parses whole and fractional shares to micro-shares', () => {
+    expect(parseSharesInput('100')).toEqual({ value: sh(100) });
+    expect(parseSharesInput('0.5')).toEqual({ value: 500_000 });
+    expect(parseSharesInput(' 1,000 ')).toEqual({ value: sh(1000) });
     expect(parseSharesInput('')).toEqual({ value: null });
-    expect(parseSharesInput('1.5')).toEqual({ error: 'Whole shares only' });
-    expect(parseSharesInput('0')).toEqual({ error: 'Must be at least 1' });
+  });
+
+  it('rejects zero, negatives, junk and more than 6 decimals', () => {
+    expect(parseSharesInput('0')).toEqual({ error: 'Must be more than 0' });
+    expect(parseSharesInput('-1')).toEqual({ error: 'Must be more than 0' });
+    expect(parseSharesInput('abc')).toEqual({ error: 'Enter a number' });
+    expect(parseSharesInput('0.0000001')).toEqual({ error: 'At most 6 decimals' });
   });
 });
 
@@ -38,7 +45,7 @@ describe('validateNewTrade', () => {
     expect(r.payload).toEqual({
       symbol: 'AMD',
       fill: {
-        quantity: 100,
+        quantity: sh(100),
         price: $('50'),
         commission: $('1'),
         otherFees: 0,
@@ -93,11 +100,11 @@ describe('validateFill', () => {
   };
 
   it('builds the payload', () => {
-    expect(validateFill(fill, 100)).toEqual({
+    expect(validateFill(fill, sh(100))).toEqual({
       errors: {},
       payload: {
         side: 'SELL',
-        quantity: 60,
+        quantity: sh(60),
         price: $('55'),
         commission: $('1'),
         otherFees: 0,
@@ -107,9 +114,32 @@ describe('validateFill', () => {
   });
 
   it('prevents selling more than the open position', () => {
-    expect(validateFill({ ...fill, shares: '101' }, 100).errors.shares).toBe(
+    expect(validateFill({ ...fill, shares: '101' }, sh(100)).errors.shares).toBe(
       'Only 100 shares are open',
     );
-    expect(validateFill({ ...fill, side: 'BUY', shares: '101' }, 100).errors).toEqual({});
+    expect(validateFill({ ...fill, side: 'BUY', shares: '101' }, sh(100)).errors).toEqual({});
+  });
+});
+
+describe('fractional shares in forms', () => {
+  it('computes risk for a fractional entry and checks fractional sells', () => {
+    const r = validateNewTrade({
+      ...base,
+      shares: '0.5',
+      price: '284.10',
+      initialStop: '270',
+      target: '',
+    });
+    expect(r.payload?.fill.quantity).toBe(500_000);
+    expect(r.preview.risk).toBe($('7.05')); // (284.10 − 270) × 0.5
+    const f = {
+      side: 'SELL' as const,
+      date: '2026-03-04',
+      time: '15:30',
+      shares: '0.6',
+      price: '290',
+      commission: '',
+    };
+    expect(validateFill(f, 500_000).errors.shares).toBe('Only 0.5 shares are open');
   });
 });

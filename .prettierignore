@@ -6,3 +6,4 @@ test-results
 playwright-report
 package-lock.json
 packages/server/drizzle
+private

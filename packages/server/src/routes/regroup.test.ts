@@ -1,11 +1,11 @@
-import { toMicros as $ } from '@tj/core';
+import { toMicros as $, toQuantity as sh } from '@tj/core';
 import { describe, expect, it } from 'vitest';
 import { at, createTestApp } from '../__fixtures__/test-app';
 
 const fill = (side: 'BUY' | 'SELL', quantity: number, price: string, executedAt: string) => ({
   symbol: 'AAPL',
   side,
-  quantity,
+  quantity: sh(quantity),
   price: $(price),
   executedAt,
 });
@@ -55,7 +55,7 @@ describe('regrouping keeps journal data attached', () => {
 
     // Editing A's sell down to 40 shares keeps the position open, merging A and B.
     // 100 − 40 + 100 − 100 = 60 still open at the end, so it is one open trade.
-    await t.patch(`/api/executions/${aSell.body.execution.id}`, { quantity: 40 });
+    await t.patch(`/api/executions/${aSell.body.execution.id}`, { quantity: sh(40) });
     const merged = (await t.get('/api/trades')).body.trades;
     expect(merged).toHaveLength(1);
     expect(merged[0]).toMatchObject({ id: a.body.tradeId, status: 'OPEN' });
@@ -68,7 +68,7 @@ describe('regrouping keeps journal data attached', () => {
     expect(orphanDetail.executions).toEqual([]);
 
     // Undo the edit: B's journal entry gets its executions back.
-    await t.patch(`/api/executions/${aSell.body.execution.id}`, { quantity: 100 });
+    await t.patch(`/api/executions/${aSell.body.execution.id}`, { quantity: sh(100) });
     const split = (await t.get('/api/trades')).body.trades;
     expect(split.map((x: { id: number }) => x.id).sort()).toEqual(
       [a.body.tradeId, b.body.tradeId].sort(),
@@ -93,5 +93,39 @@ describe('regrouping keeps journal data attached', () => {
     expect((await t.get('/api/trades')).body.trades).toEqual([]); // hidden by default
     expect((await t.del(`/api/trades/${a.body.tradeId}`)).status).toBe(204);
     expect((await t.get('/api/trades?orphaned=only')).body.trades).toEqual([]);
+  });
+});
+
+describe('regrouping when the stable-key execution disappears', () => {
+  it('keeps the journal on the trade when its first fill is deleted', async () => {
+    const t = createTestApp();
+    const first = await t.post('/api/executions', fill('BUY', 50, '49', at(2)));
+    await t.post('/api/executions', fill('BUY', 50, '50', at(3)));
+    await t.post('/api/executions', fill('SELL', 50, '55', at(4)));
+    const tradeId = first.body.tradeId as number;
+    await t.patch(`/api/trades/${tradeId}`, { thesis: 'keep me attached' });
+
+    // The first buy was a typo.
+    expect((await t.del(`/api/executions/${first.body.execution.id}`)).status).toBe(204);
+
+    const trades = (await t.get('/api/trades')).body.trades;
+    expect(trades).toHaveLength(1);
+    expect(trades[0].id).toBe(tradeId); // same row, re-keyed
+    expect((await t.get(`/api/trades/${tradeId}`)).body.journal.thesis).toBe('keep me attached');
+    expect((await t.get('/api/trades?orphaned=only')).body.trades).toEqual([]);
+  });
+
+  it('undoing an earlier-dated insert hands the journal back to the original trade', async () => {
+    const t = createTestApp();
+    const b = await t.post('/api/executions', fill('BUY', 100, '50', at(5)));
+    await t.post('/api/executions', fill('SELL', 100, '55', at(9)));
+    await t.patch(`/api/trades/${b.body.tradeId}`, { thesis: 'original' });
+    const early = await t.post('/api/executions', fill('BUY', 10, '49', at(3)));
+    await t.del(`/api/executions/${early.body.execution.id}`);
+    // (the position is 10 sh larger in between; deleting the early buy restores the original)
+    const detail = (await t.get(`/api/trades/${b.body.tradeId}`)).body;
+    expect(detail.stableKey).toBe(b.body.execution.id);
+    expect(detail.journal.thesis).toBe('original');
+    expect(detail.orphaned).toBe(false);
   });
 });

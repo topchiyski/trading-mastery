@@ -2,7 +2,15 @@
  * Form parsing and validation. Pure functions: the forms render `errors` inline and
  * send `payload` (micros, UTC) to the API.
  */
-import { isValidTicker, mulDiv, nyLocalToUtc, plannedRewardRisk, toMicros } from '@tj/core';
+import {
+  formatQuantity,
+  isValidTicker,
+  notional,
+  nyLocalToUtc,
+  plannedRewardRisk,
+  toMicros,
+  toQuantity,
+} from '@tj/core';
 
 type Parsed<T> = { value: T | null } | { error: string };
 
@@ -16,12 +24,14 @@ export function parseMoneyInput(input: string): Parsed<number> {
   }
 }
 
+/** Shares, whole or fractional (up to 6 decimals), to micro-shares. */
 export function parseSharesInput(input: string): Parsed<number> {
-  const s = input.trim();
+  const s = input.trim().replace(/,/g, '');
   if (s === '') return { value: null };
-  if (!/^\d+$/.test(s)) return { error: 'Whole shares only' };
-  const n = Number(s);
-  return n >= 1 ? { value: n } : { error: 'Must be at least 1' };
+  if (!/^-?(\d+\.?\d*|\.\d+)$/.test(s)) return { error: 'Enter a number' };
+  if ((s.split('.')[1] ?? '').length > 6) return { error: 'At most 6 decimals' };
+  const q = toQuantity(s);
+  return q > 0 ? { value: q } : { error: 'Must be more than 0' };
 }
 
 function toUtc(date: string, time: string): Parsed<string> {
@@ -104,7 +114,7 @@ export function validateNewTrade(v: NewTradeValues): {
 
   const riskOk = price !== null && initialStop !== null && initialStop < price && quantity !== null;
   const preview = {
-    risk: riskOk ? mulDiv(price - initialStop, quantity, 1) : null,
+    risk: riskOk ? notional(quantity, price - initialStop) : null,
     rewardRisk: price !== null ? plannedRewardRisk(price, initialStop, target) : null,
   };
 
@@ -152,7 +162,7 @@ export function validateFill(
   if (!v.date) errors.date = 'Required';
   const quantity = take(errors, 'shares', parseSharesInput(v.shares), true);
   if (quantity !== null && v.side === 'SELL' && quantity > openQty) {
-    errors.shares = `Only ${openQty} shares are open`;
+    errors.shares = `Only ${formatQuantity(openQty)} shares are open`;
   }
   const price = take(errors, 'price', parseMoneyInput(v.price), true);
   if (price !== null && price <= 0) errors.price = 'Must be positive';

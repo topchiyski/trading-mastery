@@ -3,7 +3,16 @@ import { Link } from 'react-router';
 import { useDeleteOrphan, useTrade } from '../../api/hooks';
 import type { TradeDetail } from '../../api/types';
 import { ConfirmButton, ErrorBox, Loading, Stat } from '../../components/ui';
-import { fmtDays, fmtMoney, fmtNyDate, fmtPct, fmtPrice, fmtR, tone } from '../../lib/format';
+import {
+  fmtDays,
+  fmtMoney,
+  fmtNyDate,
+  fmtPct,
+  fmtPrice,
+  fmtQty,
+  fmtR,
+  tone,
+} from '../../lib/format';
 import { FillsCard } from './FillsCard';
 import { JournalCard } from './JournalCard';
 import { ScreenshotsCard } from './ScreenshotsCard';
@@ -46,7 +55,9 @@ function Stats({ t }: { t: TradeDetail }) {
       <Stat testId="stat-avg-exit" label="Avg exit" value={fmtMoney(t.avgExit)} />
       <Stat
         label={closed ? 'Size' : 'Open shares'}
-        value={closed ? (t.quantity ?? '—') : `${t.openQty ?? 0} / ${t.quantity ?? 0}`}
+        value={
+          closed ? fmtQty(t.quantity) : `${fmtQty(t.openQty ?? 0)} / ${fmtQty(t.quantity ?? 0)}`
+        }
       />
       <Stat
         label="Held"

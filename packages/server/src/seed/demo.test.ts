@@ -58,6 +58,8 @@ describe('seedDemo', () => {
     expect(details.some((d) => d.stops.length >= 3)).toBe(true);
     expect(details.some((d) => d.status === 'OPEN' && (d.realisations.length ?? 0) > 0)).toBe(true);
     expect(trades.some((t) => t.holding?.calendarDays === 0 && t.status === 'CLOSED')).toBe(true);
+    // fractional shares (e.g. 0.5 sh)
+    expect(details.some((d) => d.executions.some((e) => e.quantity % 1_000_000 !== 0))).toBe(true);
     // journal content and mistake tags
     expect(details.filter((d) => d.journal.review).length).toBeGreaterThan(10);
     expect(details.some((d) => d.tags.some((tag) => tag.kind === 'MISTAKE'))).toBe(true);

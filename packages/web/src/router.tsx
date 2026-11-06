@@ -1,6 +1,7 @@
 import { Link, Navigate, createBrowserRouter, type RouteObject } from 'react-router';
 import { Layout } from './components/Layout';
 import { CashFlowsPage } from './pages/CashFlowsPage';
+import { ImportPage } from './pages/ImportPage';
 import { NewTradePage } from './pages/NewTradePage';
 import { TradeDetailPage } from './pages/trade/TradeDetailPage';
 import { TradesPage } from './pages/TradesPage';
@@ -22,6 +23,7 @@ export const routes: RouteObject[] = [
       { path: 'trades/new', element: <NewTradePage /> },
       { path: 'trades/:id', element: <TradeDetailPage /> },
       { path: 'cash-flows', element: <CashFlowsPage /> },
+      { path: 'imports', element: <ImportPage /> },
       { path: '*', element: <NotFound /> },
     ],
   },

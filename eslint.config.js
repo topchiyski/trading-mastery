@@ -11,6 +11,7 @@ export default tseslint.config(
       '**/dist/**',
       '**/coverage/**',
       'data/**',
+      'private/**',
       'test-results/**',
       'playwright-report/**',
       'packages/server/drizzle/**',

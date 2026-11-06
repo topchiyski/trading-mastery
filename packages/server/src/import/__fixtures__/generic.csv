@@ -1,0 +1,8 @@
+Date,Time,Action,Ticker,Shares,Price,Fees,Trade ID
+03/02/2026,10:00,Bought,AMD,100,160.00,1.00,T-1
+03/03/2026,10:15:30,Bought,AMD,50,164.5,-1,T-2
+03/09/2026,15:30,Sold,amd,150,170.25,1.25,T-3
+03/10/2026,11:00,Dividend,AMD,,,,T-4
+03/11/2026,,Bought,BRK B,0.5,480,0,
+03/12/2026,14:00,Sold,BRK B,0.5,"1,490.50",0,
+bad-date,10:00,Bought,X,1,1,0,T-7

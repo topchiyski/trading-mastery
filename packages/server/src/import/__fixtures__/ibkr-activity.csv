@@ -1,0 +1,66 @@
+﻿Statement,Header,Field Name,Field Value
+Statement,Data,BrokerName,Interactive Brokers
+Statement,Data,Title,Activity Statement
+Statement,Data,Period,"February 1, 2026 - October 31, 2026"
+Statement,Data,WhenGenerated,"2026-11-01, 09:00:00 EST"
+Account Information,Header,Field Name,Field Value
+Account Information,Data,Name,Synthetic Test Account
+Account Information,Data,Account,U0000000
+Account Information,Data,Base Currency,EUR
+Trades,Header,DataDiscriminator,Asset Category,Currency,Symbol,Date/Time,Quantity,T. Price,C. Price,Proceeds,Comm/Fee,Basis,Realized P/L,MTM P/L,Code
+Trades,Data,Order,Stocks,HKD,0700,"2026-04-07, 21:40:00",-100,380.2,381,38020,-50,-37000,970,-80,C
+Trades,SubTotal,,Stocks,HKD,0700,,-100,,,38020,-50,-37000,970,-80,
+Trades,Total,,Stocks,HKD,,,,,,38020,-50,-37000,970,-80,
+Trades,Data,Order,Stocks,USD,COST,"2026-06-02, 11:20:05",0.25,905.12,906,-226.28,-0.25,226.53,0,0.22,FP;O
+Trades,Data,Order,Stocks,USD,COST,"2026-06-05, 14:02:10",-0.25,921.4,920,230.35,-0.25,-226.53,3.57,-0.35,C;FP
+Trades,SubTotal,,Stocks,USD,COST,,0,,,4.07,-0.5,0,3.57,-0.13,
+Trades,Data,Order,Stocks,USD,F,"2026-02-10, 10:30:00","1,000",11.5,11.6,-11500,-5,11505,0,100,O
+Trades,Data,Order,Stocks,USD,F,"2026-02-12, 15:00:00","-1,000",12,12.01,12000,-5,-11505,490,10,C
+Trades,SubTotal,,Stocks,USD,F,,0,,,500,-10,0,490,110,
+Trades,Data,Order,Stocks,USD,MSFT,"2026-03-02, 10:00:00",10,400,401,-4000,-1,4001,0,10,O
+Trades,Data,Order,Stocks,USD,MSFT,"2026-03-03, 10:15:00",5,410,409,-2050,-1,2051,0,-5,O
+Trades,Data,Order,Stocks,USD,MSFT,"2026-03-10, 15:45:00",-15,420,421,6300,-1.05,-6052,246.95,-15,C;P
+Trades,SubTotal,,Stocks,USD,MSFT,,0,,,250,-3.05,0,246.95,-10,
+Trades,Data,Order,Stocks,USD,NVDA,"2026-10-14, 10:45:00",20,180,182,-3600,-1,3601,0,40,O
+Trades,SubTotal,,Stocks,USD,NVDA,,20,,,-3600,-1,3601,0,40,
+Trades,Data,Order,Stocks,USD,BRK B,"2026-07-07, 10:00:00",2,480,481,-960,-1,961,0,2,O
+Trades,Data,Order,Stocks,USD,BRK B,"2026-07-21, 15:30:00",-2,495,494,990,-1,-961,28,-2,C
+Trades,SubTotal,,Stocks,USD,BRK B,,0,,,30,-2,0,28,0,
+Trades,Data,Order,Stocks,USD,XYZ,"2026-04-01, 10:00:00",5,20,20,-100,-1,101,0,0,Ca
+Trades,Total,,Stocks,USD,,,,,,-6846.93,-15.55,6599.53,740.52,129.87,
+Trades,Total,,Stocks,EUR,,,,,,-6300,-14.3,6070,680,120,
+Trades,Header,DataDiscriminator,Asset Category,Currency,Symbol,Date/Time,Quantity,T. Price,,Proceeds,Comm in EUR,,,MTM in EUR,Code
+Trades,Data,Order,Forex,HKD,EUR.HKD,"2026-04-07, 21:40:01",-40,8.5,,340,0,,,0.01,AFx
+Trades,Data,Order,Forex,USD,EUR.USD,"2026-02-01, 09:00:00","-1,000",1.08,,1080,-1.7,,,0,
+Trades,SubTotal,,Forex,USD,EUR.USD,,-1000,,,1080,-1.7,,,0,
+Trades,Total,,Forex,EUR,,,,,,1100,-1.7,,,0,
+Transaction Fees,Header,Asset Category,Currency,Date/Time,Symbol,Description,Quantity,Trade Price,Amount,Code
+Transaction Fees,Data,Stocks,HKD,"2026-04-07, 21:40:00",0700,TENCENT HOLDINGS LTD,-100,380.2,-38.02,
+Transaction Fees,Data,Stocks,USD,"2026-03-10, 15:45:00",MSFT,MICROSOFT CORP,-15,420,-0.02,
+Transaction Fees,Data,Stocks,USD,"2026-06-01, 11:00:00",TSLA,TESLA INC,10,250,-0.5,
+Transaction Fees,Data,Total,,,,,,,-38.54,
+Transaction Fees,Data,Total in EUR,,,,,,,-35.2,
+Deposits & Withdrawals,Header,Currency,Settle Date,Description,Amount
+Deposits & Withdrawals,Data,EUR,2026-01-15,Electronic Fund Transfer,5000
+Deposits & Withdrawals,Data,USD,2026-02-02,Electronic Fund Transfer,1000
+Deposits & Withdrawals,Data,USD,2026-09-01,Disbursement Initiated by Synthetic Test Account,-250
+Deposits & Withdrawals,Data,Total,,,5750
+Dividends,Header,Currency,Date,Description,Amount
+Dividends,Data,USD,2026-03-26,MSFT(US0000000001) Cash Dividend USD 0.83 per Share (Ordinary Dividend),12.45
+Dividends,Data,USD,2026-06-12,MSFT(US0000000001) Cash Dividend USD 0.83 per Share (Ordinary Dividend),12.45
+Dividends,Data,Total,,,24.9
+Dividends,Data,Total in EUR,,,22.8
+Withholding Tax,Header,Currency,Date,Description,Amount,Code
+Withholding Tax,Data,USD,2026-03-26,MSFT(US0000000001) Cash Dividend USD 0.83 per Share - US Tax,-1.87,
+Withholding Tax,Data,Total,,,-1.87,
+Withholding Tax,Data,Total in EUR,,,-1.71,
+Interest,Header,Currency,Date,Description,Amount
+Interest,Data,USD,2026-04-03,USD Credit Interest for Mar-2026,3.21
+Interest,Data,EUR,2026-04-03,EUR Credit Interest for Mar-2026,1.10
+Interest,Data,Total,,,4.31
+Fees,Header,Subtitle,Currency,Date,Description,Amount
+Fees,Data,Other Fees,USD,2026-04-03,Market data subscription,-10
+Fees,Data,Total,,,,-10
+Codes,Header,Code,Meaning,Code,Meaning
+Codes,Data,O,Opening Trade,,
+Codes,Data,C,Closing Trade,,

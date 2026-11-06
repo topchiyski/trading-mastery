@@ -10,7 +10,7 @@ export interface Execution {
   id: number;
   symbol: string;
   side: Side;
-  /** Shares, positive integer. */
+  /** Micro-shares (1 share = 1_000_000), positive. Fractional shares are allowed. */
   quantity: number;
   /** Fill price in micros. */
   price: Micros;

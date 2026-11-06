@@ -8,6 +8,20 @@
       "when": 1793899040756,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1793936011203,
+      "tag": "0001_fractional_shares",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1793936626216,
+      "tag": "0002_imports",
+      "breakpoints": true
     }
   ]
 }

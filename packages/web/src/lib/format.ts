@@ -1,4 +1,4 @@
-import { formatUsd, toNyLocal, type HoldingPeriod } from '@tj/core';
+import { formatQuantity, formatUsd, toNyLocal, type HoldingPeriod } from '@tj/core';
 
 const DASH = '—';
 
@@ -47,4 +47,9 @@ export function fmtDays(h: HoldingPeriod | null | undefined): string {
 export function tone(n: number | null | undefined): 'pos' | 'neg' | '' {
   if (n == null || n === 0) return '';
   return n > 0 ? 'pos' : 'neg';
+}
+
+/** Micro-shares as readable shares ("100", "0.5"). */
+export function fmtQty(q: number | null | undefined): string {
+  return q == null ? DASH : formatQuantity(q);
 }

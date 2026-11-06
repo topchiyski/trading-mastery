@@ -1,6 +1,7 @@
 import { toNyDate, diffDays, tradingDaysBetween } from './dates';
 import { compareExecutions } from './grouping';
 import { mulDiv, type Micros } from './money';
+import { notional, perShare } from './quantity';
 import type { Execution, HoldingPeriod, TradeStatus } from './types';
 
 export interface Realisation {
@@ -72,14 +73,14 @@ export function computeTradeStats(executions: readonly Execution[]): TradeStats 
   for (const e of [...executions].sort(compareExecutions)) {
     commissions += e.commission;
     otherFees += e.otherFees;
-    const notional = mulDiv(e.quantity, e.price, 1);
+    const value = notional(e.quantity, e.price);
 
     if (e.side === 'BUY') {
       firstEntry ??= { price: e.price, quantity: e.quantity, executedAt: e.executedAt };
       boughtQty += e.quantity;
-      buyCost += notional;
+      buyCost += value;
       openQty += e.quantity;
-      openCost += notional;
+      openCost += value;
       continue;
     }
 
@@ -92,15 +93,15 @@ export function computeTradeStats(executions: readonly Execution[]): TradeStats 
     openCost -= removed;
     openQty -= e.quantity;
     soldQty += e.quantity;
-    sellProceeds += notional;
-    realisedGross += notional - removed;
+    sellProceeds += value;
+    realisedGross += value - removed;
     realisations.push({
       executionId: e.id,
       executedAt: e.executedAt,
       quantity: e.quantity,
       price: e.price,
       costBasisRemoved: removed,
-      realisedGross: notional - removed,
+      realisedGross: value - removed,
     });
   }
 
@@ -118,10 +119,10 @@ export function computeTradeStats(executions: readonly Execution[]): TradeStats 
     openQty,
     buyCost,
     sellProceeds,
-    avgEntry: mulDiv(buyCost, 1, boughtQty),
-    avgExit: soldQty > 0 ? mulDiv(sellProceeds, 1, soldQty) : null,
+    avgEntry: perShare(buyCost, boughtQty),
+    avgExit: soldQty > 0 ? perShare(sellProceeds, soldQty) : null,
     openCostBasis: openCost,
-    avgOpenCost: openQty > 0 ? mulDiv(openCost, 1, openQty) : null,
+    avgOpenCost: openQty > 0 ? perShare(openCost, openQty) : null,
     realisedGross,
     realisedNet: realisedGross - fees,
     commissions,

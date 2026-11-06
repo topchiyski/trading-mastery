@@ -1,6 +1,15 @@
 import { toMicros as $ } from '@tj/core';
 import { describe, expect, it } from 'vitest';
-import { fmtDays, fmtMoney, fmtNyDate, fmtNyDateTime, fmtPct, fmtPrice, fmtR } from './format';
+import {
+  fmtDays,
+  fmtMoney,
+  fmtNyDate,
+  fmtNyDateTime,
+  fmtPct,
+  fmtPrice,
+  fmtQty,
+  fmtR,
+} from './format';
 
 describe('format', () => {
   it('formats money, with a dash for missing values', () => {
@@ -37,5 +46,13 @@ describe('format', () => {
     expect(fmtDays({ calendarDays: 3, tradingDays: 1 })).toBe('1d (3 cal)');
     expect(fmtDays({ calendarDays: 2, tradingDays: 2 })).toBe('2d');
     expect(fmtDays(null)).toBe('—');
+  });
+});
+
+describe('fmtQty', () => {
+  it('formats micro-shares as readable shares', () => {
+    expect(fmtQty(100_000_000)).toBe('100');
+    expect(fmtQty(500_000)).toBe('0.5');
+    expect(fmtQty(null)).toBe('—');
   });
 });

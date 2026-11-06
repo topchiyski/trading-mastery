@@ -69,15 +69,18 @@ export function regroupSymbol(db: DbOrTx, symbol: string): Map<number, number> {
   if (first) throw new DomainError(422, first.code, first.message, { errors });
 
   const existing = db.select().from(trades).where(eq(trades.symbol, symbol)).all();
+  // Each row's executions before this regroup, for the fallback match below.
+  const previous = new Map<number, number[]>();
   if (existing.length > 0) {
-    db.delete(tradeExecutions)
-      .where(
-        inArray(
-          tradeExecutions.tradeId,
-          existing.map((r) => r.id),
-        ),
-      )
-      .run();
+    const ids = existing.map((r) => r.id);
+    for (const link of db
+      .select()
+      .from(tradeExecutions)
+      .where(inArray(tradeExecutions.tradeId, ids))
+      .all()) {
+      previous.set(link.tradeId, [...(previous.get(link.tradeId) ?? []), link.executionId]);
+    }
+    db.delete(tradeExecutions).where(inArray(tradeExecutions.tradeId, ids)).run();
   }
 
   const groupOfExecution = new Map<number, number>();
@@ -85,7 +88,17 @@ export function regroupSymbol(db: DbOrTx, symbol: string): Map<number, number> {
   const candidates = groups.map((): TradeRow[] => []);
   const leftover: TradeRow[] = [];
   for (const row of existing) {
-    const gi = groupOfExecution.get(row.stableKey);
+    let gi = groupOfExecution.get(row.stableKey);
+    if (gi === undefined) {
+      // The stable-key execution is gone (e.g. the first fill was deleted): fall back to the
+      // group holding most of the row's previous executions.
+      const votes = new Map<number, number>();
+      for (const id of previous.get(row.id) ?? []) {
+        const g = groupOfExecution.get(id);
+        if (g !== undefined) votes.set(g, (votes.get(g) ?? 0) + 1);
+      }
+      gi = [...votes].sort((a, b) => b[1] - a[1] || a[0] - b[0])[0]?.[0];
+    }
     if (gi === undefined) leftover.push(row);
     else candidates[gi]?.push(row);
   }

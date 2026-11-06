@@ -1,4 +1,4 @@
-import { toMicros as $ } from '@tj/core';
+import { toMicros as $, toQuantity as sh } from '@tj/core';
 import { describe, expect, it } from 'vitest';
 import { at, createTestApp, type TestApp } from '../__fixtures__/test-app';
 
@@ -6,7 +6,7 @@ async function trade(t: TestApp, symbol: string, setupTagId?: number) {
   return (
     await t.post('/api/trades', {
       symbol,
-      fill: { quantity: 10, price: $('10'), executedAt: at(2) },
+      fill: { quantity: sh(10), price: $('10'), executedAt: at(2) },
       ...(setupTagId ? { setupTagId } : {}),
     })
   ).body.id as number;

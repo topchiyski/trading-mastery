@@ -33,6 +33,7 @@ export function Layout() {
           Trades
         </NavLink>
         <NavLink to="/cash-flows">Cash flows</NavLink>
+        <NavLink to="/imports">Import</NavLink>
         <div className="sidebar-footer">
           <ApiStatus />
         </div>

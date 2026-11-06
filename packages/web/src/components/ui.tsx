@@ -92,7 +92,7 @@ export function ConfirmButton({
       type="button"
       className="small danger"
       disabled={disabled}
-      aria-label={armed ? `${confirmLabel} ${ariaLabel ?? ''}`.trim() : ariaLabel}
+      aria-label={armed && ariaLabel ? `Confirm: ${ariaLabel}` : ariaLabel}
       onClick={() => {
         if (armed) {
           setArmed(false);

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { at, fill } from './__fixtures__/fill';
 import { toMicros as $ } from './money';
+import { toQuantity as sh } from './quantity';
 import { computeTradeStats, holdingPeriod } from './trade-stats';
 
 describe('computeTradeStats — hand-calculated cases', () => {
@@ -18,7 +19,7 @@ describe('computeTradeStats — hand-calculated cases', () => {
     expect(s.returnPct).toBeCloseTo(0.0996, 10);
     expect(s.avgEntry).toBe($('50'));
     expect(s.avgExit).toBe($('55'));
-    expect(s.firstEntry).toEqual({ price: $('50'), quantity: 100, executedAt: at(2) });
+    expect(s.firstEntry).toEqual({ price: $('50'), quantity: sh(100), executedAt: at(2) });
   });
 
   it('single entry and exit, loss', () => {
@@ -48,7 +49,7 @@ describe('computeTradeStats — hand-calculated cases', () => {
     expect(s.grossPnl).toBe($('700'));
     expect(s.fees).toBe($('2.5'));
     expect(s.netPnl).toBe($('697.5'));
-    expect(s.firstEntry.quantity).toBe(100);
+    expect(s.firstEntry.quantity).toBe(sh(100));
   });
 
   it('single entry then 3 scale-outs, realised P&L per exit on average cost', () => {
@@ -103,7 +104,7 @@ describe('computeTradeStats — hand-calculated cases', () => {
       fill('SELL', 100, '42', at(3), { commission: '1' }),
     ]);
     expect(s.status).toBe('OPEN');
-    expect(s.openQty).toBe(200);
+    expect(s.openQty).toBe(sh(200));
     expect(s.openCostBasis).toBe($('8000'));
     expect(s.avgOpenCost).toBe($('40'));
     expect(s.realisedGross).toBe($('200'));
@@ -143,5 +144,27 @@ describe('holdingPeriod', () => {
       calendarDays: 1,
       tradingDays: 1,
     });
+  });
+});
+
+describe('computeTradeStats — fractional shares', () => {
+  it('scales in and out of fractional positions exactly', () => {
+    // Buy 0.5 @ 284.10 (142.05) + 0.25 @ 280 (70) = 212.05 for 0.75 sh -> avg 282.733333.
+    // Sell 0.3 @ 290: cost removed 212.05 × 0.3 / 0.75 = 84.82 -> realised 87 − 84.82 = 2.18.
+    // Sell 0.45 @ 270: remaining cost 127.23 -> realised 121.5 − 127.23 = −5.73.
+    const s = computeTradeStats([
+      fill('BUY', 0.5, '284.10', at(2), { commission: '0.35' }),
+      fill('BUY', 0.25, '280', at(3), { commission: '0.35' }),
+      fill('SELL', 0.3, '290', at(4), { commission: '0.35' }),
+      fill('SELL', 0.45, '270', at(5), { commission: '0.35' }),
+    ]);
+    expect(s.status).toBe('CLOSED');
+    expect(s.openQty).toBe(0);
+    expect(s.boughtQty).toBe(750_000);
+    expect(s.buyCost).toBe($('212.05'));
+    expect(s.avgEntry).toBe(282_733_333);
+    expect(s.realisations.map((r) => r.realisedGross)).toEqual([$('2.18'), $('-5.73')]);
+    expect(s.grossPnl).toBe($('-3.55')); // 208.50 − 212.05
+    expect(s.netPnl).toBe($('-4.95'));
   });
 });

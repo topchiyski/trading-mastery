@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { toMicros as $ } from './money';
+import { toQuantity as sh } from './quantity';
 import { initialRisk, plannedRewardRisk, rMultiple } from './risk';
 
-const firstEntry = { price: $('50'), quantity: 100 };
+const firstEntry = { price: $('50'), quantity: sh(100) };
 
 describe('initialRisk', () => {
   it('is (first entry price − initial stop) × first entry quantity', () => {
@@ -12,7 +13,9 @@ describe('initialRisk', () => {
 
   it('uses only the first fill even when the trade scaled in', () => {
     // Scale-in example: first fill 100 @ 10, stop 9.50 -> 0.50 × 100 = 50
-    expect(initialRisk({ price: $('10'), quantity: 100 }, { initialStop: $('9.5') })).toBe($('50'));
+    expect(initialRisk({ price: $('10'), quantity: sh(100) }, { initialStop: $('9.5') })).toBe(
+      $('50'),
+    );
   });
 
   it('prefers an explicit planned-risk override', () => {

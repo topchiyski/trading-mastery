@@ -1,4 +1,4 @@
-import { toMicros as $ } from '@tj/core';
+import { toMicros as $, toQuantity as sh } from '@tj/core';
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -8,7 +8,7 @@ async function newTrade(t: TestApp) {
   return (
     await t.post('/api/trades', {
       symbol: 'AAPL',
-      fill: { quantity: 10, price: $('50'), executedAt: at(2) },
+      fill: { quantity: sh(10), price: $('50'), executedAt: at(2) },
     })
   ).body.id as number;
 }
@@ -101,7 +101,7 @@ describe('screenshots API', () => {
     const exec = await t.post('/api/executions', {
       symbol: 'MSFT',
       side: 'BUY',
-      quantity: 1,
+      quantity: sh(1),
       price: $('10'),
       executedAt: at(2),
     });

@@ -1,7 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, query } from './client';
+import type { CsvMapping } from '../lib/mapping';
 import type {
   CashFlow,
+  ImportBatch,
+  ImportPreset,
+  ImportPreview,
+  ImportSource,
   Screenshot,
   Settings,
   StopChange,
@@ -150,5 +155,64 @@ export function useDeleteCashFlow() {
   return useMutation({
     mutationFn: (id: number) => api.del(`/api/cash-flows/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: keys.cashFlows }),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Imports
+
+export const importKeys = { list: ['imports'] as const, presets: ['import-presets'] as const };
+
+export function useImports() {
+  return useQuery({
+    queryKey: importKeys.list,
+    queryFn: async () => (await api.get<{ imports: ImportBatch[] }>('/api/imports')).imports,
+  });
+}
+
+export function usePreviewImport() {
+  return useMutation({
+    mutationFn: (v: { file: File; source: ImportSource; mapping?: CsvMapping }) => {
+      const form = new FormData();
+      // Text fields first: the server only sees fields sent before the file.
+      form.append('source', v.source);
+      if (v.mapping) form.append('mapping', JSON.stringify(v.mapping));
+      form.append('file', v.file);
+      return api.post<ImportPreview>('/api/imports/preview', form);
+    },
+  });
+}
+
+/** Commit and undo change trades, cash flows and the history: refresh everything. */
+function useImportAction(path: 'commit' | 'undo') {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, force }: { id: number; force?: boolean }) =>
+      api.post<ImportBatch>(
+        `/api/imports/${id}/${path}`,
+        path === 'commit' ? { force: !!force } : {},
+      ),
+    onSuccess: () => qc.invalidateQueries(),
+  });
+}
+export const useCommitImport = () => useImportAction('commit');
+export const useUndoImport = () => useImportAction('undo');
+
+export function usePresets() {
+  return useQuery({
+    queryKey: importKeys.presets,
+    queryFn: async () =>
+      (await api.get<{ presets: ImportPreset[] }>('/api/import-presets')).presets,
+  });
+}
+
+export function useSavePreset() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (v: { id?: number; name: string; mapping: CsvMapping }) =>
+      v.id
+        ? api.put<ImportPreset>(`/api/import-presets/${v.id}`, { name: v.name, mapping: v.mapping })
+        : api.post<ImportPreset>('/api/import-presets', { name: v.name, mapping: v.mapping }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: importKeys.presets }),
   });
 }

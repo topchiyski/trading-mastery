@@ -26,6 +26,8 @@ Work phase by phase and stop after each phase for go-ahead.
 
 - Money and prices are INTEGER micros (1 USD = 1_000_000); never floats in storage or core math.
   The REST API also speaks micros; the web app converts with `toMicros` / `formatUsd` from `@tj/core`.
+- Share quantities are INTEGER micro-shares (1 share = 1_000_000; fractional shares allowed). Use
+  `notional` / `perShare` / `toQuantity` / `formatQuantity` from `@tj/core`; never `qty * price`.
 - Any write that touches executions must go through `repo/executions` (or `repo/trades`) so the
   symbol is regrouped in the same transaction (`regroupSymbol`). Never write `trades` status/keys directly.
 - API errors are `{ error: { code, message, details? } }`; throw `DomainError` (see `src/errors.ts`).
@@ -38,4 +40,8 @@ Work phase by phase and stop after each phase for go-ahead.
 - Never silently clip a sell that exceeds the position; surface it as a validation error.
 - Journal data is keyed by a trade's `stable_key` (first execution id); never delete orphaned journal data.
 - Tests must not hit the network; mock the market-data provider.
+- **Broker statements are private.** Real files live in `private/` (gitignored, not linted) and must
+  never be copied into fixtures, tests, logs or commits. Fixtures are synthetic; when checking a real
+  file, print counts only.
+- Importers live in `packages/server/src/import/`; the preview/commit/undo pipeline in `repo/imports.ts`.
 - Phase done = `npm run lint && npm test` green (+ `npm run test:e2e` from Phase 3).

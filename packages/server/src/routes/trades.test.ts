@@ -1,10 +1,10 @@
-import { toMicros as $ } from '@tj/core';
+import { toMicros as $, toQuantity as sh } from '@tj/core';
 import { describe, expect, it } from 'vitest';
 import { at, createTestApp, type TestApp } from '../__fixtures__/test-app';
 
 const newTrade = (overrides: Record<string, unknown> = {}) => ({
   symbol: 'AAPL',
-  fill: { quantity: 100, price: $('50'), commission: $('1'), executedAt: at(2) },
+  fill: { quantity: sh(100), price: $('50'), commission: $('1'), executedAt: at(2) },
   initialStop: $('48'),
   target: $('56'),
   thesis: 'Breakout over 49.80 on volume',
@@ -26,7 +26,7 @@ describe('POST /api/trades (new trade)', () => {
       direction: 'LONG',
       status: 'OPEN',
       orphaned: false,
-      openQty: 100,
+      openQty: sh(100),
       avgEntry: $('50'),
       initialRisk: $('200'),
       plannedRewardRisk: 3,
@@ -43,7 +43,7 @@ describe('POST /api/trades (new trade)', () => {
     await t.post('/api/trades', newTrade());
     const res = await t.post(
       '/api/trades',
-      newTrade({ fill: { quantity: 10, price: $('51'), executedAt: at(3) } }),
+      newTrade({ fill: { quantity: sh(10), price: $('51'), executedAt: at(3) } }),
     );
     expect(res.status).toBe(409);
     expect(res.body.error.code).toBe('POSITION_ALREADY_OPEN');
@@ -65,20 +65,20 @@ describe('POST /api/trades/:id/fills (add fill)', () => {
     const { id } = (await t.post('/api/trades', newTrade())).body;
     await t.post(`/api/trades/${id}/fills`, {
       side: 'BUY',
-      quantity: 100,
+      quantity: sh(100),
       price: $('52'),
       executedAt: at(3),
     });
     await t.post(`/api/trades/${id}/fills`, {
       side: 'SELL',
-      quantity: 120,
+      quantity: sh(120),
       price: $('55'),
       commission: $('1'),
       executedAt: at(4),
     });
     const res = await t.post(`/api/trades/${id}/fills`, {
       side: 'SELL',
-      quantity: 80,
+      quantity: sh(80),
       price: $('54'),
       commission: $('1'),
       executedAt: at(5),
@@ -88,7 +88,7 @@ describe('POST /api/trades/:id/fills (add fill)', () => {
     expect(res.body).toMatchObject({
       id,
       status: 'CLOSED',
-      quantity: 200,
+      quantity: sh(200),
       avgEntry: $('51'),
       netPnl: $('717'),
       closedAt: at(5),
@@ -102,14 +102,14 @@ describe('POST /api/trades/:id/fills (add fill)', () => {
     const { id } = (await t.post('/api/trades', newTrade())).body;
     await t.post(`/api/trades/${id}/fills`, {
       side: 'SELL',
-      quantity: 100,
+      quantity: sh(100),
       price: $('55'),
       executedAt: at(4),
     });
     // A buy after the close would start a new trade.
     const res = await t.post(`/api/trades/${id}/fills`, {
       side: 'BUY',
-      quantity: 10,
+      quantity: sh(10),
       price: $('55'),
       executedAt: at(9),
     });
@@ -123,7 +123,7 @@ describe('POST /api/trades/:id/fills (add fill)', () => {
     const { id } = (await t.post('/api/trades', newTrade())).body;
     const res = await t.post(`/api/trades/${id}/fills`, {
       side: 'SELL',
-      quantity: 101,
+      quantity: sh(101),
       price: $('55'),
       executedAt: at(4),
     });
@@ -134,7 +134,7 @@ describe('POST /api/trades/:id/fills (add fill)', () => {
     const t = createTestApp();
     const res = await t.post('/api/trades/999/fills', {
       side: 'BUY',
-      quantity: 1,
+      quantity: sh(1),
       price: $('1'),
       executedAt: at(2),
     });
@@ -184,7 +184,7 @@ describe('GET /api/trades (list, filters, totals)', () => {
     const a = (await t.post('/api/trades', newTrade({ setupTagId: breakout }))).body;
     await t.post(`/api/trades/${a.id}/fills`, {
       side: 'SELL',
-      quantity: 100,
+      quantity: sh(100),
       price: $('55'),
       commission: $('1'),
       executedAt: at(4),
@@ -196,13 +196,13 @@ describe('GET /api/trades (list, filters, totals)', () => {
         newTrade({
           symbol: 'MSFT',
           initialStop: null,
-          fill: { quantity: 200, price: $('20'), commission: $('1'), executedAt: at(5) },
+          fill: { quantity: sh(200), price: $('20'), commission: $('1'), executedAt: at(5) },
         }),
       )
     ).body;
     await t.post(`/api/trades/${m.id}/fills`, {
       side: 'SELL',
-      quantity: 200,
+      quantity: sh(200),
       price: $('19'),
       commission: $('1'),
       executedAt: at(9),
@@ -213,7 +213,7 @@ describe('GET /api/trades (list, filters, totals)', () => {
       '/api/trades',
       newTrade({
         symbol: 'NVDA',
-        fill: { quantity: 10, price: $('100'), executedAt: at(10) },
+        fill: { quantity: sh(10), price: $('100'), executedAt: at(10) },
         initialStop: $('95'),
       }),
     );
@@ -233,7 +233,7 @@ describe('GET /api/trades (list, filters, totals)', () => {
     const aapl = res.body.trades[2];
     expect(aapl).toMatchObject({
       status: 'CLOSED',
-      quantity: 100,
+      quantity: sh(100),
       avgEntry: $('50'),
       avgExit: $('55'),
       netPnl: $('498'),

@@ -25,6 +25,12 @@ data/*
 *.db-shm
 *.sqlite
 
+# Broker statements contain personal data: never commit them (use synthetic fixtures in tests)
+private/
+U[0-9]*_*.csv
+U[0-9]*_*.xml
+U[0-9]*.*.pdf
+
 # Secrets: keep only the template
 .env
 .env.*

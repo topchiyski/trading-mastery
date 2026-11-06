@@ -1,11 +1,11 @@
-import { toMicros as $ } from '@tj/core';
+import { toMicros as $, toQuantity as sh } from '@tj/core';
 import { describe, expect, it } from 'vitest';
 import { at, createTestApp } from '../__fixtures__/test-app';
 
 const buy = (overrides: Record<string, unknown> = {}) => ({
   symbol: 'AAPL',
   side: 'BUY',
-  quantity: 100,
+  quantity: sh(100),
   price: $('50'),
   commission: $('1'),
   executedAt: at(2),
@@ -20,7 +20,7 @@ describe('executions API', () => {
     expect(res.body.execution).toMatchObject({
       symbol: 'AAPL',
       side: 'BUY',
-      quantity: 100,
+      quantity: sh(100),
       price: 50_000_000,
       commission: 1_000_000,
       otherFees: 0,
@@ -75,13 +75,13 @@ describe('executions API', () => {
     await t.post('/api/executions', buy());
     const res = await t.post(
       '/api/executions',
-      buy({ side: 'SELL', quantity: 150, executedAt: at(3) }),
+      buy({ side: 'SELL', quantity: sh(150), executedAt: at(3) }),
     );
     expect(res.status).toBe(422);
     expect(res.body.error.code).toBe('SELL_EXCEEDS_POSITION');
     expect(res.body.error.details.errors[0]).toMatchObject({
-      positionBefore: 100,
-      sellQuantity: 150,
+      positionBefore: sh(100),
+      sellQuantity: sh(150),
     });
     expect((await t.get('/api/executions')).body.executions).toHaveLength(1);
   });
@@ -98,11 +98,11 @@ describe('executions API', () => {
     const b = await t.post('/api/executions', buy());
     const s = await t.post(
       '/api/executions',
-      buy({ side: 'SELL', quantity: 40, executedAt: at(3) }),
+      buy({ side: 'SELL', quantity: sh(40), executedAt: at(3) }),
     );
-    const res = await t.patch(`/api/executions/${s.body.execution.id}`, { quantity: 100 });
+    const res = await t.patch(`/api/executions/${s.body.execution.id}`, { quantity: sh(100) });
     expect(res.status).toBe(200);
-    expect(res.body.execution.quantity).toBe(100);
+    expect(res.body.execution.quantity).toBe(sh(100));
     const trade = await t.get(`/api/trades/${b.body.tradeId}`);
     expect(trade.body.status).toBe('CLOSED');
   });
@@ -112,12 +112,12 @@ describe('executions API', () => {
     await t.post('/api/executions', buy());
     const s = await t.post(
       '/api/executions',
-      buy({ side: 'SELL', quantity: 40, executedAt: at(3) }),
+      buy({ side: 'SELL', quantity: sh(40), executedAt: at(3) }),
     );
-    const res = await t.patch(`/api/executions/${s.body.execution.id}`, { quantity: 500 });
+    const res = await t.patch(`/api/executions/${s.body.execution.id}`, { quantity: sh(500) });
     expect(res.status).toBe(422);
     const list = await t.get('/api/executions');
-    expect(list.body.executions[1].quantity).toBe(40);
+    expect(list.body.executions[1].quantity).toBe(sh(40));
   });
 
   it('regroups both symbols when the symbol changes', async () => {
@@ -147,7 +147,7 @@ describe('executions API', () => {
 
   it('returns 404 for unknown executions', async () => {
     const t = createTestApp();
-    expect((await t.patch('/api/executions/999', { quantity: 1 })).status).toBe(404);
+    expect((await t.patch('/api/executions/999', { quantity: sh(1) })).status).toBe(404);
     expect((await t.del('/api/executions/999')).status).toBe(404);
     expect((await t.del('/api/executions/abc')).status).toBe(400);
   });

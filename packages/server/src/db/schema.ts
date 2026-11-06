@@ -16,7 +16,7 @@ const now = sql`(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))`;
 
 export const importBatches = sqliteTable('import_batches', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  source: text('source', { enum: ['IBKR_FLEX', 'CSV'] }).notNull(),
+  source: text('source', { enum: ['IBKR_ACTIVITY', 'IBKR_FLEX', 'CSV'] }).notNull(),
   filename: text('filename').notNull(),
   fileHash: text('file_hash').notNull(),
   importedAt: text('imported_at').notNull().default(now),
@@ -24,6 +24,20 @@ export const importBatches = sqliteTable('import_batches', {
   rowsInserted: integer('rows_inserted').notNull().default(0),
   rowsSkippedDuplicate: integer('rows_skipped_duplicate').notNull().default(0),
   status: text('status', { enum: ['PREVIEW', 'COMMITTED', 'UNDONE'] }).notNull(),
+  rowsError: integer('rows_error').notNull().default(0),
+  committedAt: text('committed_at'),
+  undoneAt: text('undone_at'),
+  /** Parsed rows (JSON) kept between preview and commit. */
+  payload: text('payload'),
+});
+
+/** Saved column mappings for the generic CSV importer. */
+export const importPresets = sqliteTable('import_presets', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull().unique(),
+  /** CsvMapping as JSON. */
+  mapping: text('mapping').notNull(),
+  createdAt: text('created_at').notNull().default(now),
 });
 
 export const executions = sqliteTable(
@@ -33,12 +47,13 @@ export const executions = sqliteTable(
     id: integer('id').primaryKey({ autoIncrement: true }),
     symbol: text('symbol').notNull(),
     side: text('side', { enum: ['BUY', 'SELL'] }).notNull(),
+    /** Micro-shares (1 share = 1_000_000); fractional shares allowed. */
     quantity: integer('quantity').notNull(),
     price: integer('price').notNull(),
     commission: integer('commission').notNull().default(0),
     otherFees: integer('other_fees').notNull().default(0),
     executedAt: text('executed_at').notNull(),
-    source: text('source', { enum: ['MANUAL', 'IBKR_FLEX', 'CSV'] }).notNull(),
+    source: text('source', { enum: ['MANUAL', 'IBKR_ACTIVITY', 'IBKR_FLEX', 'CSV'] }).notNull(),
     externalId: text('external_id').unique(),
     importBatchId: integer('import_batch_id').references(() => importBatches.id),
     createdAt: text('created_at').notNull().default(now),
@@ -182,3 +197,5 @@ export type TradeRow = typeof trades.$inferSelect;
 export type TagRow = typeof tags.$inferSelect;
 export type CashFlowRow = typeof cashFlows.$inferSelect;
 export type StopChangeRow = typeof stopChanges.$inferSelect;
+export type ImportBatchRow = typeof importBatches.$inferSelect;
+export type ImportPresetRow = typeof importPresets.$inferSelect;
