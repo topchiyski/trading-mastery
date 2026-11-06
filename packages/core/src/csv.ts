@@ -38,3 +38,20 @@ export function parseCsv(text: string, delimiter = ','): string[][] {
   if (field !== '' || row.length > 0) endRow();
   return rows;
 }
+
+export type CsvCell = string | number | null | undefined;
+
+const NUMERIC = /^[+-]?(\d+\.?\d*|\.\d+)$/;
+
+function cell(v: CsvCell): string {
+  if (v === null || v === undefined) return '';
+  let s = String(v);
+  // Formula injection guard: text starting with = + - @ (and not a plain number) is prefixed with '.
+  if (typeof v === 'string' && /^[=+\-@\t\r]/.test(s) && !NUMERIC.test(s)) s = `'${s}`;
+  return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+/** RFC 4180 CSV with CRLF line endings, safe to open in a spreadsheet. */
+export function toCsv(rows: readonly (readonly CsvCell[])[]): string {
+  return rows.map((r) => r.map(cell).join(',')).join('\r\n') + (rows.length ? '\r\n' : '');
+}

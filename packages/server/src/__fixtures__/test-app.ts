@@ -12,6 +12,7 @@ export interface TestApp {
   app: FastifyInstance;
   database: OpenDatabase;
   uploadsDir: string;
+  backupsDir?: string | undefined;
   get: <T = any>(url: string) => Promise<{ status: number; body: T }>;
   post: <T = any>(url: string, payload?: unknown) => Promise<{ status: number; body: T }>;
   patch: <T = any>(url: string, payload?: unknown) => Promise<{ status: number; body: T }>;
@@ -26,6 +27,7 @@ afterEach(async () => {
     await t.app.close();
     t.database.close();
     rmSync(t.uploadsDir, { recursive: true, force: true });
+    if (t.backupsDir) rmSync(t.backupsDir, { recursive: true, force: true });
   }
 });
 
@@ -34,15 +36,19 @@ export function createTestApp(
     maxUploadBytes?: number;
     /** Market data (default: no provider configured, cached data only). */
     market?: (db: OpenDatabase['db']) => MarketData;
+    /** Enable backup routes with a temp backups dir. */
+    backups?: boolean;
   } = {},
 ): TestApp {
   const database = openDatabase(':memory:');
   const uploadsDir = mkdtempSync(join(tmpdir(), 'tj-uploads-'));
-  const { market, ...rest } = opts;
+  const backupsDir = opts.backups ? mkdtempSync(join(tmpdir(), 'tj-backups-')) : undefined;
+  const { market, backups: _backups, ...rest } = opts;
   const app = buildApp({
     db: database.db,
     uploadsDir,
     market: market ? market(database.db) : new MarketData({ db: database.db, provider: null }),
+    ...(backupsDir ? { backups: { sqlite: database.sqlite, dir: backupsDir } } : {}),
     ...rest,
   });
   const call =
@@ -59,6 +65,7 @@ export function createTestApp(
     app,
     database,
     uploadsDir,
+    backupsDir,
     get: call('GET'),
     post: call('POST'),
     patch: call('PATCH'),

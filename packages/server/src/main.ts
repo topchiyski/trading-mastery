@@ -1,5 +1,5 @@
 import { buildApp } from './app';
-import { dbPath, loadEnv, uploadsDir } from './config';
+import { backupsDir, dbPath, loadEnv, uploadsDir } from './config';
 import { openDatabase } from './db/client';
 import { marketDataFromEnv } from './market/from-env';
 
@@ -12,6 +12,7 @@ const app = buildApp({
   uploadsDir: uploadsDir(),
   market,
   backgroundSyncMs: 15 * 60_000,
+  backups: { sqlite: database.sqlite, dir: backupsDir() },
   logger: true,
 });
 app.log.info(`market data: ${market.provider?.name ?? 'not configured'}`);

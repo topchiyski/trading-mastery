@@ -32,6 +32,7 @@ export default defineConfig({
       WEB_PORT: String(WEB_PORT),
       DB_PATH: 'data/e2e/journal.db',
       UPLOADS_DIR: 'data/e2e/uploads',
+      BACKUPS_DIR: 'data/e2e/backups',
       // Offline, deterministic prices: E2E never calls the real provider (env beats .env).
       MARKET_DATA_PROVIDER: 'synthetic',
     },

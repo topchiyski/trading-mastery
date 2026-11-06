@@ -1,5 +1,6 @@
 import { healthStatus } from '@tj/core';
 import multipart from '@fastify/multipart';
+import type { Database as SqliteDatabase } from 'better-sqlite3';
 import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
 import { ZodError } from 'zod';
 import type { Db } from './db/client';
@@ -7,9 +8,12 @@ import { DomainError, isUniqueViolation } from './errors';
 import { MarketData } from './market/market-data';
 import { MarketSync } from './market/sync';
 import { marketRoutes } from './routes/market';
+import { Backups } from './backup/backups';
+import { backupRoutes } from './routes/backups';
 import { cashFlowRoutes } from './routes/cash-flows';
 import { dashboardRoutes } from './routes/dashboard';
 import { executionRoutes } from './routes/executions';
+import { exportRoutes } from './routes/export';
 import { importRoutes } from './routes/imports';
 import { screenshotRoutes } from './routes/screenshots';
 import { settingsRoutes } from './routes/settings';
@@ -26,6 +30,8 @@ export interface AppOptions {
   market?: MarketData;
   /** Run the market-data backfill every N ms (off when unset, e.g. in tests). */
   backgroundSyncMs?: number;
+  /** Enables backup/restore: the raw SQLite handle and the backups folder. */
+  backups?: { sqlite: SqliteDatabase; dir: string };
   logger?: boolean;
 }
 
@@ -77,6 +83,10 @@ export function buildApp(opts: AppOptions): FastifyInstance {
   cashFlowRoutes(app, opts.db);
   settingsRoutes(app, opts.db);
   importRoutes(app, opts.db);
+  exportRoutes(app, opts.db);
+  if (opts.backups) {
+    backupRoutes(app, new Backups({ ...opts.backups, uploadsDir: opts.uploadsDir }));
+  }
   const market = opts.market ?? new MarketData({ db: opts.db, provider: null });
   const sync = new MarketSync(opts.db, market);
   dashboardRoutes(app, opts.db, market);

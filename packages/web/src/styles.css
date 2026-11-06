@@ -584,3 +584,64 @@ button:disabled {
   width: 1px;
   background: var(--chart-axis);
 }
+
+/* Dark theme: the reference palette's dark steps (validated against #1a1a19), not an inversion. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0d0d0d;
+  --surface: #1a1a19;
+  --surface-2: #242422;
+  --border: #2c2c2a;
+  --text: #f0efec;
+  --muted: #c3c2b7;
+  --accent: #3987e5;
+  --accent-text: #ffffff;
+  --pos: #0ca30c;
+  --neg: #e66767;
+  --warn-bg: #2a2416;
+  --warn-border: #6b5420;
+  --danger: #e66767;
+  --shadow: none;
+  --chart-surface: #1a1a19;
+  --chart-series: #3987e5;
+  --chart-cat-2: #d95926;
+  --chart-neg: #e66767;
+  --chart-pos-deep: #3987e5;
+  --chart-neg-deep: #e66767;
+  --chart-mid: #383835;
+  --chart-grid: #2c2c2a;
+  --chart-axis: #383835;
+  --chart-muted: #898781;
+  --chart-ink: #f0efec;
+  --chart-ink-2: #c3c2b7;
+}
+:root[data-theme='dark'] .lightbox img {
+  background: #2c2c2a;
+}
+kbd {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 0 5px;
+  border-radius: 4px;
+  border: 1px solid rgb(255 255 255 / 40%);
+  margin-left: 6px;
+  font-weight: 400;
+}
+a.button-link,
+a.small {
+  display: inline-block;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 12px;
+  color: var(--text);
+  background: var(--surface);
+}
+a.small {
+  padding: 3px 8px;
+  font-size: 12px;
+}
+a.button-link:hover,
+a.small:hover {
+  background: var(--surface-2);
+  text-decoration: none;
+}

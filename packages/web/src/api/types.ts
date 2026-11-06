@@ -396,3 +396,10 @@ export interface MarketStatus {
   nextSlotInMs: number;
   lastCompleteDay: string;
 }
+
+export interface BackupInfo {
+  name: string;
+  createdAt: string;
+  dbBytes: number;
+  uploadsBytes: number;
+}

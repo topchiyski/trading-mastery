@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseCsv } from './csv';
+import { parseCsv, toCsv } from './csv';
 
 describe('parseCsv', () => {
   it('splits rows and fields', () => {
@@ -28,5 +28,27 @@ describe('parseCsv', () => {
       ['a', 'b'],
       ['1', '2'],
     ]);
+  });
+});
+
+describe('toCsv', () => {
+  it('quotes fields that need it and uses CRLF line endings', () => {
+    expect(toCsv([['a', 'b,c', 'say "hi"', 'two\nlines', null, 12.5, -3]])).toBe(
+      'a,"b,c","say ""hi""","two\nlines",,12.5,-3\r\n',
+    );
+  });
+
+  it('neutralises spreadsheet formulas in text but not negative numbers', () => {
+    expect(toCsv([['=HYPERLINK("x")', '+1+1', '@SUM(A1)', '-12.50', '-cmd', 'ok']])).toBe(
+      `"'=HYPERLINK(""x"")",'+1+1,'@SUM(A1),-12.50,'-cmd,ok\r\n`,
+    );
+  });
+
+  it('round-trips through parseCsv', () => {
+    const rows = [
+      ['symbol', 'note'],
+      ['AAPL', 'comma, "quote"\nnewline'],
+    ];
+    expect(parseCsv(toCsv(rows))).toEqual(rows);
   });
 });

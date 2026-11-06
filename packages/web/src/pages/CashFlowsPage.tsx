@@ -41,6 +41,10 @@ export function CashFlowsPage() {
     <>
       <div className="page-head">
         <h1>Cash flows</h1>
+        <span className="spacer" />
+        <a className="button-link" href="/api/export/cash-flows.csv" download>
+          Export CSV
+        </a>
       </div>
       <p className="muted">
         Deposits and withdrawals change the account size but not performance (time-weighted return).

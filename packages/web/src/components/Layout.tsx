@@ -1,7 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 import { APP_NAME, type HealthStatus } from '@tj/core';
-import { NavLink, Outlet } from 'react-router';
+import { useEffect, useState } from 'react';
+import { NavLink, Outlet, useNavigate } from 'react-router';
 import { api } from '../api/client';
+import {
+  THEME_KEY,
+  applyTheme,
+  currentTheme,
+  isNewTradeShortcut,
+  type Theme,
+} from '../lib/shortcuts';
 
 function ApiStatus() {
   const health = useQuery({
@@ -21,13 +29,49 @@ function ApiStatus() {
   );
 }
 
+function ThemeToggle() {
+  const [theme, setTheme] = useState<Theme>(currentTheme);
+  const next: Theme = theme === 'dark' ? 'light' : 'dark';
+  return (
+    <button
+      type="button"
+      className="small"
+      aria-pressed={theme === 'dark'}
+      onClick={() => {
+        localStorage.setItem(THEME_KEY, next);
+        applyTheme(next);
+        setTheme(next);
+      }}
+    >
+      {theme === 'dark' ? '☀ Light mode' : '☾ Dark mode'}
+    </button>
+  );
+}
+
 export function Layout() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (isNewTradeShortcut(e)) {
+        e.preventDefault();
+        void navigate('/trades/new');
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [navigate]);
+
   return (
     <div className="shell">
       <nav className="sidebar" aria-label="Main">
         <div className="brand">{APP_NAME}</div>
-        <NavLink to="/trades/new" className="cta">
-          New trade
+        <NavLink
+          to="/trades/new"
+          className="cta"
+          title="Keyboard shortcut: n"
+          aria-keyshortcuts="n"
+        >
+          New trade <kbd>n</kbd>
         </NavLink>
         <NavLink to="/dashboard">Dashboard</NavLink>
         <NavLink to="/trades" end>
@@ -36,7 +80,9 @@ export function Layout() {
         <NavLink to="/positions">Positions</NavLink>
         <NavLink to="/cash-flows">Cash flows</NavLink>
         <NavLink to="/imports">Import</NavLink>
-        <div className="sidebar-footer">
+        <NavLink to="/settings">Settings</NavLink>
+        <div className="sidebar-footer stack" style={{ gap: 8 }}>
+          <ThemeToggle />
           <ApiStatus />
         </div>
       </nav>

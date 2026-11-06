@@ -60,7 +60,7 @@ const createSchema = z
 
 const fillSchema = fill.extend({ side: z.enum(['BUY', 'SELL']) });
 
-const listQuery = z.object({
+export const tradeListQuery = z.object({
   status: z.enum(['OPEN', 'CLOSED']).optional(),
   symbol: z.string().toUpperCase().optional(),
   setupTagId: z.coerce.number().int().positive().optional(),
@@ -77,7 +77,7 @@ const stopSchema = z
 const tagsSchema = z.object({ tagIds: z.array(z.number().int().positive()).max(100) }).strict();
 
 export function tradeRoutes(app: FastifyInstance, db: Db, uploadsDir: string): void {
-  app.get('/api/trades', async (req) => listTrades(db, listQuery.parse(req.query)));
+  app.get('/api/trades', async (req) => listTrades(db, tradeListQuery.parse(req.query)));
 
   app.post('/api/trades', async (req, reply) =>
     reply.code(201).send(createTrade(db, createSchema.parse(req.body))),

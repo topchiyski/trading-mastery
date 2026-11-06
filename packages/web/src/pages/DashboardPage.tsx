@@ -383,10 +383,23 @@ export function DashboardPage() {
         <Loading />
       ) : (
         <>
+          {d.metrics.count === 0 && (
+            <div className="card empty" role="status">
+              {Object.keys(filters).length > 0 ? (
+                'No closed trades match these filters.'
+              ) : (
+                <>
+                  No closed trades yet. <Link to="/trades/new">Record a trade</Link> or{' '}
+                  <Link to="/imports">import a broker statement</Link> to see your statistics here.
+                </>
+              )}
+            </div>
+          )}
           {d.startingBalance === 0 && d.includesCashFlows && (
             <div className="banner" role="status">
               No starting balance is set, so % returns and % drawdown can't be computed until the
-              account has a balance. Dollar figures and R are unaffected.
+              account has a balance. <Link to="/settings">Set it in Settings</Link>. Dollar figures
+              and R are unaffected.
             </div>
           )}
           {!d.includesCashFlows && (

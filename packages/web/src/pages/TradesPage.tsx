@@ -1,6 +1,7 @@
 import type { Outcome } from '@tj/core';
 import { useMemo } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
+import { query } from '../api/client';
 import { useTags, useTrades } from '../api/hooks';
 import type { TradeFilters, TradeListItem } from '../api/types';
 import { ErrorBox, Field, Loading } from '../components/ui';
@@ -122,6 +123,10 @@ export function TradesPage() {
     <>
       <div className="page-head">
         <h1>{showingOrphans ? 'Orphaned journal entries' : 'Trades'}</h1>
+        <span className="spacer" />
+        <a className="button-link" href={`/api/export/trades.csv${query(filters)}`} download>
+          Export CSV
+        </a>
       </div>
 
       {!showingOrphans && (orphans.data?.trades.length ?? 0) > 0 && (

@@ -21,3 +21,8 @@ export function uploadsDir(): string {
   const p = process.env['UPLOADS_DIR'] ?? 'data/uploads';
   return isAbsolute(p) ? p : resolve(REPO_ROOT, p);
 }
+
+export function backupsDir(): string {
+  const p = process.env['BACKUPS_DIR'] ?? 'data/backups';
+  return isAbsolute(p) ? p : resolve(REPO_ROOT, p);
+}

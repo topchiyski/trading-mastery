@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, query } from './client';
 import type { CsvMapping } from '../lib/mapping';
 import type {
+  BackupInfo,
   CashFlow,
   Dashboard,
   DashboardFilters,
@@ -259,6 +260,72 @@ export function useSyncMarket() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => api.post<MarketStatus>('/api/market-data/sync', { wait: true }),
+    onSuccess: () => qc.invalidateQueries(),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Settings, tag management, backups
+
+export function useUpdateSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (patch: Partial<Settings>) => api.put<Settings>('/api/settings', patch),
+    onSuccess: (s) => {
+      qc.setQueryData(keys.settings, s);
+      void qc.invalidateQueries({ queryKey: keys.trades });
+    },
+  });
+}
+
+/** Tag changes affect trade lists and the dashboard too. */
+function useTagMutation<V>(fn: (v: V) => Promise<unknown>) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: fn,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: keys.tags });
+      void qc.invalidateQueries({ queryKey: keys.trades });
+    },
+  });
+}
+
+export const useUpdateTag = () =>
+  useTagMutation((v: { id: number; name?: string; color?: string }) =>
+    api.patch<Tag>(`/api/tags/${v.id}`, {
+      ...(v.name ? { name: v.name } : {}),
+      ...(v.color ? { color: v.color } : {}),
+    }),
+  );
+
+export const useDeleteTag = () =>
+  useTagMutation((v: { id: number; reassignTo?: number }) =>
+    api.del(`/api/tags/${v.id}${v.reassignTo ? `?reassignTo=${v.reassignTo}` : ''}`),
+  );
+
+export function useBackups() {
+  return useQuery({
+    queryKey: ['backups'],
+    queryFn: async () => (await api.get<{ backups: BackupInfo[] }>('/api/backups')).backups,
+  });
+}
+
+export function useCreateBackup() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.post<BackupInfo>('/api/backups'),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['backups'] }),
+  });
+}
+
+export function useRestoreBackup() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (name: string) =>
+      api.post<{ restored: string; safetyBackup: string }>(`/api/backups/${name}/restore`, {
+        confirm: true,
+      }),
+    // Everything may have changed.
     onSuccess: () => qc.invalidateQueries(),
   });
 }
