@@ -29,3 +29,4 @@ export function healthStatus(now: Date = new Date()): HealthStatus {
 }
 export * from './quantity';
 export * from './csv';
+export * from './histogram';

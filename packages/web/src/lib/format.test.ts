@@ -1,6 +1,7 @@
 import { toMicros as $ } from '@tj/core';
 import { describe, expect, it } from 'vitest';
 import {
+  fmtCompactMoney,
   fmtDays,
   fmtMoney,
   fmtNyDate,
@@ -54,5 +55,19 @@ describe('fmtQty', () => {
     expect(fmtQty(100_000_000)).toBe('100');
     expect(fmtQty(500_000)).toBe('0.5');
     expect(fmtQty(null)).toBe('—');
+  });
+});
+
+describe('fmtCompactMoney', () => {
+  it('abbreviates thousands and millions with a sign', () => {
+    expect(fmtCompactMoney(1_234_000_000)).toBe('+$1.2k');
+    expect(fmtCompactMoney(-450_000_000)).toBe('-$450');
+    expect(fmtCompactMoney(2_500_000_000_000)).toBe('+$2.5M');
+    expect(fmtCompactMoney(0)).toBe('$0');
+  });
+
+  it('can omit the + sign for levels such as account equity', () => {
+    expect(fmtCompactMoney(45_000_000_000, { signed: false })).toBe('$45k');
+    expect(fmtCompactMoney(-450_000_000, { signed: false })).toBe('-$450');
   });
 });

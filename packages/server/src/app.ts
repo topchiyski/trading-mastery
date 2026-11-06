@@ -5,6 +5,7 @@ import { ZodError } from 'zod';
 import type { Db } from './db/client';
 import { DomainError, isUniqueViolation } from './errors';
 import { cashFlowRoutes } from './routes/cash-flows';
+import { dashboardRoutes } from './routes/dashboard';
 import { executionRoutes } from './routes/executions';
 import { importRoutes } from './routes/imports';
 import { screenshotRoutes } from './routes/screenshots';
@@ -69,6 +70,7 @@ export function buildApp(opts: AppOptions): FastifyInstance {
   cashFlowRoutes(app, opts.db);
   settingsRoutes(app, opts.db);
   importRoutes(app, opts.db);
+  dashboardRoutes(app, opts.db);
 
   return app;
 }

@@ -3,6 +3,8 @@ import { api, query } from './client';
 import type { CsvMapping } from '../lib/mapping';
 import type {
   CashFlow,
+  Dashboard,
+  DashboardFilters,
   ImportBatch,
   ImportPreset,
   ImportPreview,
@@ -214,5 +216,13 @@ export function useSavePreset() {
         ? api.put<ImportPreset>(`/api/import-presets/${v.id}`, { name: v.name, mapping: v.mapping })
         : api.post<ImportPreset>('/api/import-presets', { name: v.name, mapping: v.mapping }),
     onSuccess: () => qc.invalidateQueries({ queryKey: importKeys.presets }),
+  });
+}
+
+export function useDashboard(filters: DashboardFilters) {
+  return useQuery({
+    queryKey: ['trades', 'dashboard', filters],
+    queryFn: () => api.get<Dashboard>(`/api/dashboard${query(filters)}`),
+    placeholderData: (prev) => prev,
   });
 }

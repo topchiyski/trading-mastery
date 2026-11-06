@@ -1,7 +1,7 @@
 import type { CsvMapping } from '../lib/mapping';
 // Response shapes of the REST API (money in micros, timestamps UTC ISO).
 // Mirrors packages/server; kept separate so the web build never pulls in server code.
-import type { HoldingPeriod, Outcome } from '@tj/core';
+import type { HoldingPeriod, Outcome, PortfolioMetrics } from '@tj/core';
 
 export type TagKind = 'SETUP' | 'MISTAKE' | 'CUSTOM';
 export interface Tag {
@@ -228,4 +228,70 @@ export interface ImportPreset {
   name: string;
   mapping: CsvMapping | null;
   createdAt: string;
+}
+
+export interface BreakdownRow {
+  key: string;
+  count: number;
+  wins: number;
+  losses: number;
+  breakEvens: number;
+  winRate: number | null;
+  totalNetPnl: number;
+  expectancy: number | null;
+  expectancyR: number | null;
+  rTradeCount: number;
+  rExcludedCount: number;
+}
+
+export interface EquityPoint {
+  date: string;
+  equity: number;
+  externalFlow: number;
+  externalFlowsCum: number;
+  incomeCum: number;
+  realisedPnlCum: number;
+  performanceCum: number;
+  dailyReturn: number;
+  twrIndex: number;
+  performanceDrawdown: number;
+  twrDrawdownPct: number;
+}
+
+export interface Dashboard {
+  range: { from: string | null; to: string | null };
+  includesCashFlows: boolean;
+  startingBalance: number;
+  metrics: PortfolioMetrics;
+  equity: EquityPoint[];
+  rCurve: {
+    points: {
+      stableKey: number;
+      closedAt: string;
+      rMultiple: number;
+      cumR: number;
+      drawdownR: number;
+    }[];
+    excluded: number;
+  };
+  monthly: { month: string; netPnl: number; count: number }[];
+  trades: {
+    id: number;
+    symbol: string;
+    openedAt: string;
+    closedAt: string;
+    netPnl: number;
+    rMultiple: number | null;
+    tradingDays: number;
+    calendarDays: number;
+  }[];
+  breakdowns: Record<'setup' | 'symbol' | 'weekday' | 'month' | 'mistake', BreakdownRow[]>;
+}
+
+export interface DashboardFilters {
+  from?: string;
+  to?: string;
+  setupTagId?: number;
+  tagId?: number;
+  symbol?: string;
 }

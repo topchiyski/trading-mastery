@@ -148,7 +148,6 @@ h2 {
   font-size: 18px;
   font-weight: 600;
   margin-top: 2px;
-  font-variant-numeric: tabular-nums;
 }
 
 /* Tables */
@@ -444,4 +443,143 @@ button:disabled {
 .lightbox .nav {
   display: flex;
   gap: 8px;
+}
+
+/* Charts — tokens from the validated reference palette (dataviz skill). */
+:root {
+  --chart-surface: #fcfcfb;
+  --chart-series: #2a78d6;
+  --chart-neg: #e34948;
+  --chart-pos-deep: #1c5cab;
+  --chart-neg-deep: #b0302f;
+  --chart-mid: #f0efec;
+  --chart-grid: #e1e0d9;
+  --chart-axis: #c3c2b7;
+  --chart-muted: #898781;
+  --chart-ink: #0b0b0b;
+  --chart-ink-2: #52514e;
+}
+.chart {
+  position: relative;
+}
+.chart svg {
+  display: block;
+  overflow: visible;
+}
+.chart .tick {
+  font-size: 11px;
+  fill: var(--chart-muted);
+  font-variant-numeric: tabular-nums;
+}
+.chart-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 10%);
+  padding: 6px 9px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 5;
+  transform: translate(-50%, calc(-100% - 10px));
+}
+.chart-tooltip strong {
+  display: block;
+  font-size: 13px;
+  color: var(--chart-ink);
+}
+.chart-tooltip span {
+  color: var(--chart-ink-2);
+}
+.chart-card h2 {
+  margin-bottom: 4px;
+}
+.chart-card .sub {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+.chart-card details {
+  margin-top: 8px;
+  font-size: 12px;
+}
+.chart-card details table {
+  margin-top: 6px;
+}
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+  gap: 16px;
+}
+.heatmap {
+  display: grid;
+  grid-template-columns: 44px repeat(12, minmax(0, 1fr));
+  gap: 2px;
+  font-size: 11px;
+}
+.heatmap .head {
+  color: var(--chart-muted);
+  text-align: center;
+  padding: 2px 0;
+}
+.heatmap .year {
+  color: var(--chart-muted);
+  align-self: center;
+}
+.heatmap button {
+  all: unset;
+  box-sizing: border-box;
+  border-radius: 4px;
+  min-height: 44px;
+  padding: 4px;
+  text-align: center;
+  cursor: pointer;
+  line-height: 1.25;
+}
+.heatmap button:focus-visible {
+  outline: 2px solid var(--accent);
+}
+.heatmap .empty-cell {
+  border-radius: 4px;
+  min-height: 44px;
+  background: var(--surface-2);
+}
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
+}
+.kpis .stat .value {
+  font-size: 24px;
+}
+.bar-cell {
+  position: relative;
+  min-width: 140px;
+}
+.bar-cell .bar {
+  position: absolute;
+  top: 50%;
+  height: 8px;
+  transform: translateY(-50%);
+  border-radius: 2px;
+}
+.bar-cell .bar-label {
+  position: relative;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.bar-cell .bar-axis {
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  bottom: 4px;
+  width: 1px;
+  background: var(--chart-axis);
 }

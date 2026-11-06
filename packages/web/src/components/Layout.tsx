@@ -29,6 +29,7 @@ export function Layout() {
         <NavLink to="/trades/new" className="cta">
           New trade
         </NavLink>
+        <NavLink to="/dashboard">Dashboard</NavLink>
         <NavLink to="/trades" end>
           Trades
         </NavLink>

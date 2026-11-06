@@ -53,3 +53,17 @@ export function tone(n: number | null | undefined): 'pos' | 'neg' | '' {
 export function fmtQty(q: number | null | undefined): string {
   return q == null ? DASH : formatQuantity(q);
 }
+
+/** Short signed money for tight spaces: +$1.2k, -$450, +$2.5M. */
+export function fmtCompactMoney(micros: number, opts: { signed?: boolean } = {}): string {
+  const v = micros / 1_000_000;
+  const abs = Math.abs(v);
+  const sign = v > 0 ? (opts.signed === false ? '' : '+') : v < 0 ? '-' : '';
+  const body =
+    abs >= 1e6
+      ? `${(abs / 1e6).toFixed(1)}M`
+      : abs >= 1e3
+        ? `${(abs / 1e3).toFixed(1)}k`
+        : abs.toFixed(0);
+  return `${sign}$${body.replace(/\.0(?=[kM])/, '')}`;
+}
